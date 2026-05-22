@@ -8,7 +8,9 @@ import models
 from routers import attendance_routes
 from routers import auth_routes
 from routers import employee_routes
-
+from routers import shift_routes
+from routers import shift_assignment_routes
+from routers import swap_routes
 # ==========================================
 # CREATE DATABASE TABLES
 # ==========================================
@@ -45,6 +47,10 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(attendance_routes.router)
 app.include_router(employee_routes.router)
+app.include_router(shift_routes.router)
+app.include_router(shift_assignment_routes.router)
+app.include_router(swap_routes.router)
+
 # ==========================================
 # ROOT
 # ==========================================

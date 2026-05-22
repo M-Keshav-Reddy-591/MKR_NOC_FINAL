@@ -1,122 +1,160 @@
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime, date
 
-
-# ==========================================
-# LOGIN SCHEMA
-# ==========================================
-
-class LoginSchema(BaseModel):
-
-    emp_id: str
-
-    password: str
-
-    role: str
-
-
-# ==========================================
-# REGISTER SCHEMA
-# ==========================================
+# =========================
+# AUTH
+# =========================
 
 class RegisterSchema(BaseModel):
+    employee_id: str
+    full_name: str
+    password: str
+    role: str = "employee"
 
-    emp_id: str
 
-    name: str
-
+class LoginSchema(BaseModel):
+    employee_id: str
     password: str
 
-    department: str
 
+# =========================
+# EMPLOYEE
+# =========================
+
+class EmployeeResponse(BaseModel):
+    id: int
+    employee_id: str
+    full_name: str
     role: str
 
-
-# ==========================================
-# CHANGE PASSWORD SCHEMA
-# ==========================================
-
-class ChangePasswordSchema(BaseModel):
-
-    old_password: str
-
-    new_password: str
-from typing import Optional
+    class Config:
+        from_attributes = True
 
 
-# ==========================================
-# ATTENDANCE SCHEMA
-# ==========================================
+# =========================
+# ATTENDANCE
+# =========================
 
-class AttendanceSchema(BaseModel):
-
+class AttendanceCreate(BaseModel):
     employee_id: int
-
-    attendance_date: str
-
     status: str
-
     remarks: Optional[str] = None
 
 
-# ==========================================
-# ADMIN MARK ATTENDANCE
-# ==========================================
-
-class AdminAttendanceSchema(BaseModel):
-
+class AttendanceResponse(BaseModel):
+    id: int
     employee_id: int
-
     status: str
+    check_in: Optional[datetime]
+    check_out: Optional[datetime]
+    remarks: Optional[str]
 
-    check_in: Optional[str] = None
+    class Config:
+        from_attributes = True
 
-    check_out: Optional[str] = None
 
-    remarks: Optional[str] = None
+# =========================
+# SHIFT
+# =========================
 
-# ==========================================
-# EMPLOYEE UPDATE SCHEMA
-# ==========================================
-
-class EmployeeUpdateSchema(BaseModel):
-
-    name: str
-
-    department: str
-
-    role: str
-
-    is_active: bool
-# =====================================================
-# SHIFT SCHEMAS
-# =====================================================
-
-class ShiftCreateSchema(BaseModel):
-
+class ShiftCreate(BaseModel):
     shift_name: str
-
     start_time: str
-
     end_time: str
 
 
+class ShiftResponse(BaseModel):
+    id: int
+    shift_name: str
+    start_time: str
+    end_time: str
+
+    class Config:
+        from_attributes = True
+
+# =========================
+# SHIFT ASSIGNMENT
+# =========================
+
 class ShiftAssignSchema(BaseModel):
-
     employee_id: int
-
     shift_id: int
+    assigned_date: date
 
-    shift_date: date
 
+class ShiftAssignmentResponseSchema(BaseModel):
+    id: int
+    employee_id: int
+    shift_id: int
+    assigned_date: date
+
+    class Config:
+        from_attributes = True
+
+# =========================
+# SHIFT SWAP
+# =========================
+
+class ShiftSwapCreate(BaseModel):
+    requester_id: int
+    receiver_id: int
+    requester_shift_id: int
+    receiver_shift_id: int
+    reason: Optional[str] = None
+# =========================
+# ADMIN ATTENDANCE
+# =========================
+
+class AdminAttendanceSchema(BaseModel):
+    employee_id: int
+    status: str
+    check_in: Optional[datetime] = None
+    check_out: Optional[datetime] = None
+    remarks: Optional[str] = None
+# =========================
+# EMPLOYEE UPDATE
+# =========================
+
+class EmployeeUpdateSchema(BaseModel):
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+class ShiftCreateSchema(BaseModel):
+    shift_name: str
+    start_time: str
+    end_time: str
+class ShiftResponseSchema(BaseModel):
+    id: int
+    shift_name: str
+    start_time: str
+    end_time: str
+
+    class Config:
+        from_attributes = True
+# =========================
+# SHIFT SWAP
+# =========================
 
 class ShiftSwapSchema(BaseModel):
-
-    requester_id: int
-
-    receiver_id: int
-
+    requester_emp_id: int
+    target_emp_id: int
     requester_shift_id: int
+    target_shift_id: int
+    swap_date: date
+    reason: Optional[str] = None
 
-    receiver_shift_id: int
 
-    reason: str
+class ShiftSwapResponseSchema(BaseModel):
+    id: int
+    requester_emp_id: int
+    target_emp_id: int
+    requester_shift_id: int
+    target_shift_id: int
+    swap_date: date
+    reason: Optional[str]
+    status: str
+
+    class Config:
+        from_attributes = True
+

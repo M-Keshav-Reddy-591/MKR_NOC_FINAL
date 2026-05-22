@@ -34,39 +34,6 @@ class Employee(Base):
     is_active = Column(Boolean, default=True)
 
 
-class Shift(Base):
-    __tablename__ = "shifts"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    shift_name = Column(String(100))
-
-    start_time = Column(Time)
-
-    end_time = Column(Time)
-
-
-class ShiftAssignment(Base):
-    __tablename__ = "shift_assignments"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
-
-    shift_id = Column(
-        Integer,
-        ForeignKey("shifts.id")
-    )
-
-    shift_date = Column(Date)
-
-    employee = relationship("Employee")
-
-    shift = relationship("Shift")
-
 
 class Attendance(Base):
     __tablename__ = "attendance"
@@ -91,27 +58,7 @@ class Attendance(Base):
     employee = relationship("Employee")
 
 
-class ShiftSwap(Base):
-    __tablename__ = "shift_swaps"
 
-    id = Column(Integer, primary_key=True, index=True)
-
-    requester_emp_id = Column(String(50))
-
-    target_emp_id = Column(String(50))
-
-    requester_shift_id = Column(Integer)
-
-    target_shift_id = Column(Integer)
-
-    swap_date = Column(Date)
-
-    status = Column(String(20), default="pending")
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow
-    )
 # =====================================================
 # SHIFT TABLE
 # =====================================================
@@ -122,11 +69,11 @@ class Shift(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    shift_name = Column(String(100))
+    shift_name = Column(String(100), nullable=False)
 
-    start_time = Column(String(20))
+    start_time = Column(String(20), nullable=False)
 
-    end_time = Column(String(20))
+    end_time = Column(String(20), nullable=False)
 
     is_active = Column(Boolean, default=True)
 
