@@ -1,26 +1,34 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import models
 from database import engine
+from database import Base
 
-from routers import auth_routes
+import models
 from routers import attendance_routes
-from routers import shift_routes
-from routers import shift_assignment_routes
-from routers import dashboard_routes
-from routers import swap_routes
+from routers import auth_routes
+from routers import employee_routes
 
-
+# ==========================================
 # CREATE DATABASE TABLES
-models.Base.metadata.create_all(bind=engine)
+# ==========================================
+
+Base.metadata.create_all(bind=engine)
+
+
+# ==========================================
+# FASTAPI APP
+# ==========================================
 
 app = FastAPI(
-    title="NOC Attendance System"
+    title="NOC Attendance Management System"
 )
 
 
+# ==========================================
 # CORS
+# ==========================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,17 +38,20 @@ app.add_middleware(
 )
 
 
-# ROUTERS
+# ==========================================
+# ROUTES
+# ==========================================
+
 app.include_router(auth_routes.router)
 app.include_router(attendance_routes.router)
-app.include_router(shift_routes.router)
-app.include_router(shift_assignment_routes.router)
-app.include_router(dashboard_routes.router)
-app.include_router(swap_routes.router)
-
+app.include_router(employee_routes.router)
+# ==========================================
+# ROOT
+# ==========================================
 
 @app.get("/")
-def root():
+def home():
+
     return {
         "message": "NOC Attendance Backend Running"
     }

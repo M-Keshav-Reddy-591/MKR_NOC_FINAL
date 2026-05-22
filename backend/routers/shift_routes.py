@@ -4,63 +4,45 @@ from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 
+from database import get_db
+
 import models
 import schemas
-import auth
 
-from database import SessionLocal
-
-
-router = APIRouter()
+from auth import get_current_user
 
 
-# ==========================================
-# DATABASE
-# ==========================================
-
-def get_db():
-
-    db = SessionLocal()
-
-    try:
-        yield db
-
-    finally:
-        db.close()
+router = APIRouter(
+    prefix="/api/v1/shifts",
+    tags=["Shifts"]
+)
 
 
-# ==========================================
+# =====================================================
 # CREATE SHIFT
-# ADMIN ONLY
-# ==========================================
+# =====================================================
 
-@router.post("/create-shift")
+@router.post("/create")
 def create_shift(
-    shift: schemas.ShiftCreate,
+    shift_data: schemas.ShiftCreateSchema,
     db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(
-        auth.admin_required
-    )
+    current_user: models.Employee = Depends(get_current_user)
 ):
 
-    existing_shift = db.query(
-        models.Shift
-    ).filter(
-        models.Shift.shift_name == shift.shift_name
-    ).first()
-
-    if existing_shift:
+    if current_user.role != "admin":
 
         raise HTTPException(
-            status_code=400,
-            detail="Shift already exists"
+            status_code=403,
+            detail="Admin access required"
         )
 
     new_shift = models.Shift(
-        shift_name=shift.shift_name,
-        start_time=shift.start_time,
-        end_time=shift.end_time,
-        grace_minutes=shift.grace_minutes
+
+        shift_name=shift_data.shift_name,
+
+        start_time=shift_data.start_time,
+
+        end_time=shift_data.end_time
     )
 
     db.add(new_shift)
@@ -70,60 +52,56 @@ def create_shift(
     db.refresh(new_shift)
 
     return {
-        "message": "Shift Created Successfully"
+        "message": "Shift created successfully"
     }
 
 
-# ==========================================
-# VIEW SHIFTS
-# ==========================================
+# =====================================================
+# GET ALL SHIFTS
+# =====================================================
 
-@router.get("/shifts")
+@router.get("/all")
 def get_all_shifts(
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(
-        auth.get_current_user
-    )
+    db: Session = Depends(get_db)
 ):
 
-    shifts = db.query(
-        models.Shift
-    ).all()
+    shifts = db.query(models.Shift).all()
 
-    return shifts
+    result = []
+
+    for shift in shifts:
+
+        result.append({
+            "id": shift.id,
+            "shift_name": shift.shift_name,
+            "start_time": shift.start_time,
+            "end_time": shift.end_time,
+            "is_active": shift.is_active
+        })
+
+    return result
 
 
-# ==========================================
-# ASSIGN SHIFT
-# ADMIN ONLY
-# ==========================================
+# =====================================================
+# DELETE SHIFT
+# =====================================================
 
-@router.post("/assign-shift")
-def assign_shift(
-    roster: schemas.RosterCreate,
+@router.delete("/delete/{shift_id}")
+def delete_shift(
+    shift_id: int,
     db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(
-        auth.admin_required
-    )
+    current_user: models.Employee = Depends(get_current_user)
 ):
 
-    employee = db.query(
-        models.Employee
-    ).filter(
-        models.Employee.emp_id == roster.emp_id
-    ).first()
-
-    if not employee:
+    if current_user.role != "admin":
 
         raise HTTPException(
-            status_code=404,
-            detail="Employee not found"
+            status_code=403,
+            detail="Admin access required"
         )
 
-    shift = db.query(
-        models.Shift
-    ).filter(
-        models.Shift.id == roster.shift_id
+    shift = db.query(models.Shift).filter(
+        models.Shift.id == shift_id
     ).first()
 
     if not shift:
@@ -133,64 +111,10 @@ def assign_shift(
             detail="Shift not found"
         )
 
-    existing_roster = db.query(
-        models.Roster
-    ).filter(
-        models.Roster.emp_id == roster.emp_id,
-        models.Roster.shift_date == roster.shift_date
-    ).first()
-
-    if existing_roster:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Shift already assigned"
-        )
-
-    new_roster = models.Roster(
-        emp_id=roster.emp_id,
-        shift_id=roster.shift_id,
-        shift_date=roster.shift_date
-    )
-
-    db.add(new_roster)
+    db.delete(shift)
 
     db.commit()
 
-    db.refresh(new_roster)
-
     return {
-        "message": "Shift Assigned Successfully"
+        "message": "Shift deleted successfully"
     }
-
-
-# ==========================================
-# VIEW ROSTER
-# ==========================================
-
-@router.get("/roster")
-def view_roster(
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(
-        auth.get_current_user
-    )
-):
-
-    roster = db.query(
-        models.Roster
-    ).all()
-
-    return roster
-# ==========================================
-# GET ALL SHIFTS
-# ==========================================
-
-@router.get("/all")
-def get_all_shifts(
-
-    db: Session = Depends(get_db)
-):
-
-    return db.query(
-        models.Shift
-    ).all()

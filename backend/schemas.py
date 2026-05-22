@@ -1,95 +1,106 @@
 from pydantic import BaseModel
 
-from datetime import time
-from datetime import date
-
 
 # ==========================================
-# EMPLOYEE
-# ==========================================
-
-class EmployeeCreate(BaseModel):
-
-    emp_id: str
-    name: str
-    department: str
-    role: str
-    password: str
-
-
-# ==========================================
-# LOGIN
+# LOGIN SCHEMA
 # ==========================================
 
 class LoginSchema(BaseModel):
 
     emp_id: str
+
     password: str
 
-
-# ==========================================
-# SHIFT
-# ==========================================
-
-class ShiftCreate(BaseModel):
-
-    shift_name: str
-    start_time: time
-    end_time: time
-    grace_minutes: int
+    role: str
 
 
 # ==========================================
-# ROSTER
+# REGISTER SCHEMA
 # ==========================================
 
-class RosterCreate(BaseModel):
-
-    emp_id: str
-    shift_id: int
-    shift_date: date
-
-
-# ==========================================
-# ATTENDANCE
-# ==========================================
-
-class AttendanceCreate(BaseModel):
+class RegisterSchema(BaseModel):
 
     emp_id: str
 
+    name: str
 
-# ==========================================
-# LEAVE
-# ==========================================
+    password: str
 
-class LeaveCreate(BaseModel):
+    department: str
 
-    emp_id: str
-    from_date: date
-    to_date: date
-    reason: str
+    role: str
 
 
 # ==========================================
-# SHIFT SWAP
+# CHANGE PASSWORD SCHEMA
 # ==========================================
 
-class ShiftSwapCreate(BaseModel):
-
-    requester_emp_id: str
-    target_emp_id: str
-    shift_date: date
-class ChangePassword(BaseModel):
+class ChangePasswordSchema(BaseModel):
 
     old_password: str
 
     new_password: str
+from typing import Optional
+
+
 # ==========================================
-# SHIFT ASSIGNMENT
+# ATTENDANCE SCHEMA
 # ==========================================
 
-class ShiftAssignmentCreate(BaseModel):
+class AttendanceSchema(BaseModel):
+
+    employee_id: int
+
+    attendance_date: str
+
+    status: str
+
+    remarks: Optional[str] = None
+
+
+# ==========================================
+# ADMIN MARK ATTENDANCE
+# ==========================================
+
+class AdminAttendanceSchema(BaseModel):
+
+    employee_id: int
+
+    status: str
+
+    check_in: Optional[str] = None
+
+    check_out: Optional[str] = None
+
+    remarks: Optional[str] = None
+
+# ==========================================
+# EMPLOYEE UPDATE SCHEMA
+# ==========================================
+
+class EmployeeUpdateSchema(BaseModel):
+
+    name: str
+
+    department: str
+
+    role: str
+
+    is_active: bool
+# =====================================================
+# SHIFT SCHEMAS
+# =====================================================
+
+class ShiftCreateSchema(BaseModel):
+
+    shift_name: str
+
+    start_time: str
+
+    end_time: str
+
+
+class ShiftAssignSchema(BaseModel):
 
     employee_id: int
 
@@ -98,22 +109,14 @@ class ShiftAssignmentCreate(BaseModel):
     shift_date: date
 
 
-# ==========================================
-# SWAP APPROVAL
-# ==========================================
+class ShiftSwapSchema(BaseModel):
 
-class ShiftSwapApproval(BaseModel):
+    requester_id: int
 
-    status: str
+    receiver_id: int
 
+    requester_shift_id: int
 
+    receiver_shift_id: int
 
-
-
-class MarkAttendance(BaseModel):
-
-    status: str
-
-    late_minutes: int = 0
-
-    ot_hours: float = 0
+    reason: str

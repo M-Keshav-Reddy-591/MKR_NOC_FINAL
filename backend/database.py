@@ -14,9 +14,6 @@ SessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-# ==========================================
-# GET DB
-# ==========================================
 
 def get_db():
     db = SessionLocal()

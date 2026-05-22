@@ -7,232 +7,134 @@ from sqlalchemy.orm import Session
 from database import get_db
 
 import models
-import auth
+import schemas
 
-from datetime import date
-from dependencies import get_current_user
-
-router = APIRouter()
+from auth import get_current_user
 
 
-# ==========================================
-# REQUEST SHIFT SWAP
-# ==========================================
+router = APIRouter(
+    prefix="/api/v1/swaps",
+    tags=["Shift Swaps"]
+)
 
-@router.post("/request-shift-swap")
-def request_shift_swap(
 
-    data: dict,
+# =====================================================
+# REQUEST SWAP
+# =====================================================
 
+@router.post("/request")
+def request_swap(
+    swap_data: schemas.ShiftSwapSchema,
     db: Session = Depends(get_db),
-
-    current_user: models.Employee = Depends(
-        auth.get_current_user
-    )
+    current_user: models.Employee = Depends(get_current_user)
 ):
 
-    # ======================================
-    # FIND REQUESTER SHIFT
-    # ======================================
+    new_swap = models.ShiftSwap(
 
-    requester_shift = db.query(
+        requester_id=swap_data.requester_id,
 
-        models.ShiftAssignment
+        receiver_id=swap_data.receiver_id,
 
-    ).filter(
+        requester_shift_id=swap_data.requester_shift_id,
 
-        models.ShiftAssignment.employee_id
-        == data["requester_emp_id"],
+        receiver_shift_id=swap_data.receiver_shift_id,
 
-        models.ShiftAssignment.shift_date
-        == data["shift_date"]
-
-    ).first()
-
-
-    if not requester_shift:
-
-        raise HTTPException(
-
-            status_code=404,
-
-            detail="Requester Shift Not Found"
-        )
-
-
-    # ======================================
-    # FIND TARGET SHIFT
-    # ======================================
-
-    target_shift = db.query(
-
-        models.ShiftAssignment
-
-    ).filter(
-
-        models.ShiftAssignment.employee_id
-        == data["target_emp_id"],
-
-        models.ShiftAssignment.shift_date
-        == data["shift_date"]
-
-    ).first()
-
-
-    if not target_shift:
-
-        raise HTTPException(
-
-            status_code=404,
-
-            detail="Target Shift Not Found"
-        )
-
-
-    # ======================================
-    # CREATE SWAP REQUEST
-    # ======================================
-
-    swap = models.ShiftSwap(
-
-        requester_emp_id=data["requester_emp_id"],
-
-        target_emp_id=data["target_emp_id"],
-
-        shift_date=data["shift_date"],
-
-        requester_shift=requester_shift.shift_name,
-
-        target_shift=target_shift.shift_name,
-
-        reason=data.get("reason", ""),
-
-        status="Pending"
+        reason=swap_data.reason
     )
 
-
-    db.add(swap)
+    db.add(new_swap)
 
     db.commit()
 
-    db.refresh(swap)
-
-
     return {
-
-        "message":
-        "Shift Swap Request Created",
-
-        "swap_id":
-        swap.id
+        "message": "Swap request submitted"
     }
 
 
-# ==========================================
-# VIEW SHIFT SWAPS
-# ==========================================
+# =====================================================
+# GET ALL SWAPS
+# =====================================================
 
-@router.get("/shift-swaps")
-def view_shift_swaps(
-
-    db: Session = Depends(get_db)
+@router.get("/all")
+def all_swaps(
+    db: Session = Depends(get_db),
+    current_user: models.Employee = Depends(get_current_user)
 ):
 
-    swaps = db.query(
+    swaps = db.query(models.ShiftSwap).all()
 
-        models.ShiftSwap
+    result = []
 
-    ).all()
+    for swap in swaps:
+
+        result.append({
+            "id": swap.id,
+            "requester_id": swap.requester_id,
+            "receiver_id": swap.receiver_id,
+            "status": swap.status,
+            "reason": swap.reason
+        })
+
+    return result
 
 
-    return swaps
+# =====================================================
+# APPROVE SWAP
+# =====================================================
 
-
-# ==========================================
-# APPROVE SHIFT SWAP
-# ==========================================
-
-@router.put("/approve-shift-swap/{swap_id}")
-def approve_shift_swap(
-
+@router.put("/approve/{swap_id}")
+def approve_swap(
     swap_id: int,
-
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.Employee = Depends(get_current_user)
 ):
 
-    swap = db.query(
-
-        models.ShiftSwap
-
-    ).filter(
-
+    swap = db.query(models.ShiftSwap).filter(
         models.ShiftSwap.id == swap_id
-
     ).first()
-
 
     if not swap:
 
         raise HTTPException(
-
             status_code=404,
-
-            detail="Swap Request Not Found"
+            detail="Swap not found"
         )
 
-
-    swap.status = "Approved"
+    swap.status = "approved"
 
     db.commit()
 
-
     return {
-
-        "message":
-        "Shift Swap Approved"
+        "message": "Swap approved"
     }
 
 
-# ==========================================
-# DECLINE SHIFT SWAP
-# ==========================================
+# =====================================================
+# REJECT SWAP
+# =====================================================
 
-@router.put("/decline-shift-swap/{swap_id}")
-def decline_shift_swap(
-
+@router.put("/reject/{swap_id}")
+def reject_swap(
     swap_id: int,
-
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.Employee = Depends(get_current_user)
 ):
 
-    swap = db.query(
-
-        models.ShiftSwap
-
-    ).filter(
-
+    swap = db.query(models.ShiftSwap).filter(
         models.ShiftSwap.id == swap_id
-
     ).first()
-
 
     if not swap:
 
         raise HTTPException(
-
             status_code=404,
-
-            detail="Swap Request Not Found"
+            detail="Swap not found"
         )
 
-
-    swap.status = "Declined"
+    swap.status = "rejected"
 
     db.commit()
 
-
     return {
-
-        "message":
-        "Shift Swap Declined"
+        "message": "Swap rejected"
     }
