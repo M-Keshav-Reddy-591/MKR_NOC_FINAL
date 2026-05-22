@@ -150,7 +150,7 @@ def employees_by_department(
 @router.put("/update/{employee_id}")
 def update_employee(
     employee_id: int,
-    employee_data: schemas.EmployeeUpdateSchema,
+    employee_data: schemas.RegisterSchema,
     db: Session = Depends(get_db),
     current_user: models.Employee = Depends(get_current_user)
 ):

@@ -132,7 +132,7 @@ def my_attendance(
 
 @router.post("/admin-mark-attendance")
 def admin_mark_attendance(
-    attendance_data: schemas.AdminAttendanceSchema,
+     attendance_data: schemas.AttendanceSchema,
     db: Session = Depends(get_db),
     current_user: models.Employee = Depends(get_current_user)
 ):

@@ -24,7 +24,7 @@ router = APIRouter(
 
 @router.post("/request")
 def request_swap(
-    swap_data: schemas.ShiftSwapSchema,
+    swap_data: schemas.SwapSchema,
     db: Session = Depends(get_db),
     current_user: models.Employee = Depends(get_current_user)
 ):

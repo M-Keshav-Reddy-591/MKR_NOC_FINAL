@@ -24,7 +24,7 @@ router = APIRouter(
 
 @router.post("/create")
 def create_shift(
-    shift_data: schemas.ShiftCreateSchema,
+    shift_data: schemas.ShiftSchema,
     db: Session = Depends(get_db),
     current_user: models.Employee = Depends(get_current_user)
 ):

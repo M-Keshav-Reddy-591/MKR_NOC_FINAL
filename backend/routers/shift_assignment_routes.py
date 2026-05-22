@@ -24,7 +24,7 @@ router = APIRouter(
 
 @router.post("/assign")
 def assign_shift(
-    shift_data: schemas.ShiftAssignSchema,
+    shift_data: schemas.ShiftSchema,
     db: Session = Depends(get_db),
     current_user: models.Employee = Depends(get_current_user)
 ):

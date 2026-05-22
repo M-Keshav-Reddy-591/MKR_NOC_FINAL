@@ -5,9 +5,9 @@ from database import engine
 from database import Base
 
 import models
-from routers import attendance_routes
 from routers import auth_routes
 from routers import employee_routes
+from routers import attendance_routes
 from routers import shift_routes
 from routers import shift_assignment_routes
 from routers import swap_routes
