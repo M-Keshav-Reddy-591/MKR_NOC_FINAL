@@ -10,6 +10,7 @@ import EmployeeLayout from "./layouts/EmployeeLayout";
 /* PROTECTED ROUTE */
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChangePassword from "./pages/profile/ChangePassword";
 
 /* ADMIN PAGES */
 
@@ -21,6 +22,7 @@ import ExportReports from "./pages/admin/ExportReports";
 import ShiftManagement from "./pages/admin/ShiftManagement";
 import EmployeeManagement from "./pages/admin/EmployeeManagement";
 import AdminProfile from "./pages/admin/Profile";
+import RosterUpload from "./pages/admin/RosterUpload";
 
 /* EMPLOYEE PAGES */
 
@@ -92,7 +94,14 @@ function App() {
             path="/admin-profile"
             element={<AdminProfile />}
           />
-
+          <Route
+            path="/change-password"
+            element={<ChangePassword />}
+          />
+          <Route
+            path="/roster-upload"
+            element={<RosterUpload />}
+          />
         </Route>
 
         {/* EMPLOYEE */}
@@ -132,6 +141,10 @@ function App() {
         <Route
           path="/shift-history"
           element={<ShiftHistory />}
+        />
+        <Route
+          path="/change-password"
+          element={<ChangePassword />}
         />
 
         </Route>

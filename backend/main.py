@@ -17,7 +17,7 @@ from routers import swap_routes
 from routers import live_attendance_routes
 from routers import export_routes
 from routers import csv_upload_routes
-
+from routers import shift_upload_routes
 
 
 
@@ -66,6 +66,10 @@ app.include_router(swap_routes.router)
 app.include_router(live_attendance_routes.router)
 app.include_router(export_routes.router)
 app.include_router(csv_upload_routes.router)
+app.include_router(shift_upload_routes.router)
+
+
+
 
 # ==========================================
 # ROOT
