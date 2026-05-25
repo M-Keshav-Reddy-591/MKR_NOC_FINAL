@@ -1,20 +1,19 @@
-from fastapi import APIRouter
-from fastapi import Depends
-
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import date
+
+import models
 
 from database import SessionLocal
 
-import models
-import auth
 
+router = APIRouter(
 
-router = APIRouter()
+    prefix="/api/v1/dashboard",
 
+    tags=["Dashboard"]
+)
 
-# ==========================================
-# DATABASE
-# ==========================================
 
 def get_db():
 
@@ -27,112 +26,36 @@ def get_db():
         db.close()
 
 
-# ==========================================
-# DASHBOARD STATS
-# ==========================================
+@router.get("/admin")
 
-@router.get("/stats")
-def get_dashboard_stats(
+def admin_dashboard(
 
-    db: Session = Depends(get_db),
-
-    current_user: models.Employee = Depends(
-        auth.get_current_user
-    )
+    db: Session = Depends(get_db)
 ):
 
     total_employees = db.query(
         models.Employee
     ).count()
 
-
     total_attendance = db.query(
         models.Attendance
-    ).count()
-
-
-    total_leaves = db.query(
-        models.Leave
-    ).count()
-
-
-    total_swaps = db.query(
-        models.ShiftSwap
-    ).count()
-
-
-    return {
-
-        "employees": total_employees,
-
-        "attendance": total_attendance,
-
-        "leaves": total_leaves,
-
-        "swaps": total_swaps
-    }
-# ==========================================
-# EMPLOYEE DASHBOARD
-# ==========================================
-
-@router.get("/employee-dashboard")
-def employee_dashboard(
-
-    db: Session = Depends(get_db),
-
-    current_user: models.Employee = Depends(
-        auth.get_current_user
-    )
-):
-
-    attendance_count = db.query(
-        models.Attendance
     ).filter(
-        models.Attendance.employee_id
-        == current_user.id
+        models.Attendance.date == date.today()
     ).count()
 
+    total_shifts = db.query(
+        models.Shift
+    ).count()
+
+    total_leaves = 0
 
     return {
 
-        "employee": current_user.name,
+        "total_employees": total_employees,
 
-        "attendance_count": attendance_count
+        "present_today": total_attendance,
+
+        "total_shifts": total_shifts,
+
+        "total_leaves": total_leaves
     }
-
-
-# ==========================================
-# ATTENDANCE REPORT
-# ==========================================
-
-@router.get("/attendance-report")
-def attendance_report(
-
-    db: Session = Depends(get_db),
-
-    current_user: models.Employee = Depends(
-        auth.get_current_user
-    )
-):
-
-    attendance = db.query(
-        models.Attendance
-    ).all()
-
-
-    report = []
-
-
-    for item in attendance:
-
-        report.append({
-
-            "employee_id": item.employee_id,
-
-            "date": item.date,
-
-            "status": item.status
-        })
-
-
-    return report

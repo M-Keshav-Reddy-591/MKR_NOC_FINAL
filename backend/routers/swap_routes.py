@@ -1,92 +1,108 @@
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
-
-from database import get_db
 
 import models
 import schemas
 
-from auth import get_current_user
+from database import SessionLocal
 
 
 router = APIRouter(
+
     prefix="/api/v1/swaps",
+
     tags=["Shift Swaps"]
 )
 
 
-# =====================================================
+def get_db():
+
+    db = SessionLocal()
+
+    try:
+        yield db
+
+    finally:
+        db.close()
+
+
 # REQUEST SWAP
-# =====================================================
 
 @router.post("/request")
+
 def request_swap(
-    swap_data: schemas.SwapSchema,
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(get_current_user)
+
+    swap_data: schemas.ShiftSwapSchema,
+
+    db: Session = Depends(get_db)
 ):
 
-    new_swap = models.ShiftSwap(
+    requester = db.query(models.Employee).filter(
+        models.Employee.id == swap_data.requester_id
+    ).first()
+
+    if not requester:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Requester not found"
+        )
+
+    target = db.query(models.Employee).filter(
+        models.Employee.id == swap_data.target_employee_id
+    ).first()
+
+    if not target:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Target employee not found"
+        )
+
+    swap = models.ShiftSwap(
 
         requester_id=swap_data.requester_id,
 
-        receiver_id=swap_data.receiver_id,
+        target_employee_id=swap_data.target_employee_id,
 
-        requester_shift_id=swap_data.requester_shift_id,
+        current_shift_id=swap_data.current_shift_id,
 
-        receiver_shift_id=swap_data.receiver_shift_id,
-
-        reason=swap_data.reason
+        requested_shift_id=swap_data.requested_shift_id
     )
 
-    db.add(new_swap)
+    db.add(swap)
 
     db.commit()
 
+    db.refresh(swap)
+
     return {
-        "message": "Swap request submitted"
+        "message": "Shift swap request created"
     }
 
 
-# =====================================================
 # GET ALL SWAPS
-# =====================================================
 
 @router.get("/all")
-def all_swaps(
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(get_current_user)
+
+def get_swaps(
+
+    db: Session = Depends(get_db)
 ):
 
-    swaps = db.query(models.ShiftSwap).all()
-
-    result = []
-
-    for swap in swaps:
-
-        result.append({
-            "id": swap.id,
-            "requester_id": swap.requester_id,
-            "receiver_id": swap.receiver_id,
-            "status": swap.status,
-            "reason": swap.reason
-        })
-
-    return result
+    return db.query(models.ShiftSwap).all()
 
 
-# =====================================================
 # APPROVE SWAP
-# =====================================================
 
 @router.put("/approve/{swap_id}")
+
 def approve_swap(
+
     swap_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(get_current_user)
+
+    db: Session = Depends(get_db)
 ):
 
     swap = db.query(models.ShiftSwap).filter(
@@ -100,7 +116,7 @@ def approve_swap(
             detail="Swap not found"
         )
 
-    swap.status = "approved"
+    swap.status = "Approved"
 
     db.commit()
 
@@ -109,15 +125,15 @@ def approve_swap(
     }
 
 
-# =====================================================
 # REJECT SWAP
-# =====================================================
 
 @router.put("/reject/{swap_id}")
+
 def reject_swap(
+
     swap_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(get_current_user)
+
+    db: Session = Depends(get_db)
 ):
 
     swap = db.query(models.ShiftSwap).filter(
@@ -131,7 +147,7 @@ def reject_swap(
             detail="Swap not found"
         )
 
-    swap.status = "rejected"
+    swap.status = "Rejected"
 
     db.commit()
 

@@ -10,7 +10,11 @@ from routers import employee_routes
 from routers import attendance_routes
 from routers import shift_routes
 from routers import shift_assignment_routes
+from routers import dashboard_routes
+from routers import leave_routes
+from routers import report_routes
 from routers import swap_routes
+
 # ==========================================
 # CREATE DATABASE TABLES
 # ==========================================
@@ -49,7 +53,13 @@ app.include_router(attendance_routes.router)
 app.include_router(employee_routes.router)
 app.include_router(shift_routes.router)
 app.include_router(shift_assignment_routes.router)
+app.include_router(dashboard_routes.router)
+app.include_router(leave_routes.router)
+app.include_router(report_routes.router)
 app.include_router(swap_routes.router)
+
+
+
 
 # ==========================================
 # ROOT

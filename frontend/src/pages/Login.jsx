@@ -1,86 +1,124 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import axios from "axios";
 
 export default function Login() {
-  const navigate = useNavigate();
 
-  const [employeeId, setEmployeeId] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState("employee");
 
-  const loginUser = async (e) => {
-    e.preventDefault();
+  const [empId, setEmpId] = useState("");
+
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
 
     try {
-      const response = await API.post("/auth/login", {
-        employee_id: employeeId,
-        password: password,
-        role: role,
-      });
 
-      localStorage.setItem("token", response.data.access_token);
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/v1/auth/login",
+        {
+          emp_id: empId,
+          password: password,
+          role: role
+        }
+      );
+
+      localStorage.setItem(
+        "token",
+        response.data.access_token
+      );
+
+      localStorage.setItem(
+        "role",
+        role
+      );
+
+      alert("Login Successful");
 
       if (role === "admin") {
-        navigate("/admin-dashboard");
+
+        window.location.href = "/admin-dashboard";
+
       } else {
-        navigate("/employee-dashboard");
+
+        window.location.href = "/employee-dashboard";
       }
+
     } catch (error) {
-      console.log(error);
-      alert("Invalid Login");
+
+      alert("Invalid Credentials");
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100">
-      <form
-        onSubmit={loginUser}
-        className="bg-white p-10 rounded-xl shadow-xl w-[400px]"
-      >
-        <h1 className="text-3xl font-bold mb-6 text-center">
+
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+
+      <div className="bg-white p-10 rounded-2xl shadow-2xl w-[420px]">
+
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+
           NOC Attendance System
+
         </h1>
 
-        <div className="mb-4">
-          <label className="font-semibold">Employee ID</label>
-          <input
-            type="text"
-            className="w-full border p-3 rounded mt-2"
-            value={employeeId}
-            onChange={(e) => setEmployeeId(e.target.value)}
-            required
-          />
-        </div>
+        {/* LOGIN BUTTONS */}
 
-        <div className="mb-4">
-          <label className="font-semibold">Password</label>
-          <input
-            type="password"
-            className="w-full border p-3 rounded mt-2"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+        <div className="flex gap-4 mb-8">
 
-        <div className="mb-6">
-          <label className="font-semibold">Login Type</label>
-
-          <select
-            className="w-full border p-3 rounded mt-2"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
+          <button
+            onClick={() => setRole("admin")}
+            className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+              role === "admin"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
           >
-            <option value="employee">Employee Login</option>
-            <option value="admin">Admin Login</option>
-          </select>
+            Admin Login
+          </button>
+
+          <button
+            onClick={() => setRole("employee")}
+            className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+              role === "employee"
+                ? "bg-green-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Employee Login
+          </button>
+
         </div>
 
-        <button className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700">
-          Login
+        {/* FORM */}
+
+        <input
+          type="text"
+          placeholder="Employee ID"
+          value={empId}
+          onChange={(e) => setEmpId(e.target.value)}
+          className="w-full border p-3 rounded-xl mb-4"
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border p-3 rounded-xl mb-6"
+        />
+
+        <button
+          onClick={handleLogin}
+          className={`w-full py-3 rounded-xl text-white font-bold text-lg ${
+            role === "admin"
+              ? "bg-blue-600"
+              : "bg-green-600"
+          }`}
+        >
+          Login as {role}
         </button>
-      </form>
+
+      </div>
     </div>
   );
 }

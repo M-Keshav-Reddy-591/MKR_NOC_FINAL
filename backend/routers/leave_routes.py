@@ -1,158 +1,65 @@
 from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-
-from sqlalchemy.orm import Session
-
+from database import SessionLocal
 import models
 import schemas
 
-from database import SessionLocal
-import auth
+router = APIRouter(
+    prefix="/api/v1/leaves",
+    tags=["Leaves"]
+)
 
-router = APIRouter()
+@router.post("/apply")
 
-
-# ==========================================
-# DATABASE
-# ==========================================
-
-def get_db():
+def apply_leave(
+    leave_data: schemas.LeaveSchema
+):
 
     db = SessionLocal()
 
-    try:
-        yield db
+    leave = models.Leave(
 
-    finally:
-        db.close()
+        employee_id=leave_data.employee_id,
 
+        leave_type=leave_data.leave_type,
 
-# ==========================================
-# APPLY LEAVE
-# ==========================================
+        start_date=leave_data.start_date,
 
-@router.post("/apply-leave")
-def apply_leave(
-    leave: schemas.LeaveCreate,
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(
-        auth.employee_required
-    )
-):
+        end_date=leave_data.end_date,
 
-    # ======================================
-    # CHECK EMPLOYEE
-    # ======================================
-
-    employee = db.query(
-        models.Employee
-    ).filter(
-        models.Employee.emp_id == leave.emp_id
-    ).first()
-
-    if not employee:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Employee not found"
-        )
-
-    # ======================================
-    # DATE VALIDATION
-    # ======================================
-
-    if leave.to_date < leave.from_date:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid leave dates"
-        )
-
-    # ======================================
-    # DUPLICATE LEAVE CHECK
-    # ======================================
-
-    existing_leave = db.query(
-        models.Leave
-    ).filter(
-        models.Leave.emp_id == leave.emp_id,
-        models.Leave.from_date == leave.from_date,
-        models.Leave.to_date == leave.to_date
-    ).first()
-
-    if existing_leave:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Leave already applied"
-        )
-
-    # ======================================
-    # SAVE LEAVE
-    # ======================================
-
-    new_leave = models.Leave(
-        emp_id=leave.emp_id,
-        from_date=leave.from_date,
-        to_date=leave.to_date,
-        reason=leave.reason,
-        status="Pending"
+        reason=leave_data.reason
     )
 
-    db.add(new_leave)
+    db.add(leave)
 
     db.commit()
 
-    db.refresh(new_leave)
-
     return {
-        "message": "Leave Applied Successfully",
-        "status": "Pending"
+        "message": "Leave applied successfully"
     }
 
 
-# ==========================================
-# VIEW ALL LEAVES
-# ==========================================
+@router.get("/all")
 
-@router.get("/leaves")
-def get_all_leaves(
-    db: Session = Depends(get_db)
-):
+def get_all_leaves():
 
-    leaves = db.query(
+    db = SessionLocal()
+
+    return db.query(
         models.Leave
     ).all()
 
-    return leaves
 
+@router.put("/approve/{leave_id}")
 
-# ==========================================
-# APPROVE LEAVE
-# ==========================================
+def approve_leave(leave_id: int):
 
-@router.put("/approve-leave/{leave_id}")
-def approve_leave(
-    leave_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.Employee = Depends(
-        auth.admin_required
-    )
-):
+    db = SessionLocal()
 
     leave = db.query(
         models.Leave
     ).filter(
         models.Leave.id == leave_id
     ).first()
-
-    if not leave:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Leave not found"
-        )
 
     leave.status = "Approved"
 
@@ -163,28 +70,17 @@ def approve_leave(
     }
 
 
-# ==========================================
-# REJECT LEAVE
-# ==========================================
+@router.put("/reject/{leave_id}")
 
-@router.put("/reject-leave/{leave_id}")
-def reject_leave(
-    leave_id: int,
-    db: Session = Depends(get_db)
-):
+def reject_leave(leave_id: int):
+
+    db = SessionLocal()
 
     leave = db.query(
         models.Leave
     ).filter(
         models.Leave.id == leave_id
     ).first()
-
-    if not leave:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Leave not found"
-        )
 
     leave.status = "Rejected"
 
