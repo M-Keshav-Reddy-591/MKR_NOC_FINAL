@@ -1,150 +1,49 @@
-import csv
-
-import pandas as pd
-
 from fastapi import APIRouter
-from fastapi import Depends
-
-from fastapi.responses import FileResponse
-
-from sqlalchemy.orm import Session
-
+from fastapi.responses import StreamingResponse
 from database import SessionLocal
-
 import models
-import auth
+import csv
+import io
 
+router = APIRouter(
+    prefix="/api/v1/export",
+    tags=["Export"]
+)
 
-router = APIRouter()
-
-
-# ==========================================
-# DATABASE
-# ==========================================
-
-def get_db():
+@router.get("/attendance")
+def export_attendance():
 
     db = SessionLocal()
 
-    try:
-        yield db
+    attendance = db.query(models.Attendance).all()
 
-    finally:
-        db.close()
+    output = io.StringIO()
 
+    writer = csv.writer(output)
 
-# ==========================================
-# EXPORT CSV
-# ==========================================
+    writer.writerow([
+        "Employee ID",
+        "Employee Name",
+        "Date",
+        "Status"
+    ])
 
-@router.get("/export-csv")
-def export_csv(
-
-    db: Session = Depends(get_db),
-
-    current_user: models.Employee = Depends(
-        auth.admin_required
-    )
-):
-
-    attendance = db.query(
-        models.Attendance
-    ).all()
-
-    filename = "attendance_report.csv"
-
-    with open(
-        filename,
-        mode="w",
-        newline=""
-    ) as file:
-
-        writer = csv.writer(file)
+    for row in attendance:
 
         writer.writerow([
-
-            "Employee ID",
-
-            "Shift Date",
-
-            "Login Time",
-
-            "Status"
+            row.emp_id,
+            row.emp_name,
+            row.date,
+            row.status
         ])
 
-        for record in attendance:
+    output.seek(0)
 
-            writer.writerow([
-
-                record.emp_id,
-
-                record.shift_date,
-
-                record.login_time,
-
-                record.status
-            ])
-
-    return FileResponse(
-
-        path=filename,
-
-        filename=filename,
-
-        media_type="text/csv"
-    )
-
-
-# ==========================================
-# EXPORT EXCEL
-# ==========================================
-
-@router.get("/export-excel")
-def export_excel(
-
-    db: Session = Depends(get_db),
-
-    current_user: models.Employee = Depends(
-        auth.admin_required
-    )
-):
-
-    attendance = db.query(
-        models.Attendance
-    ).all()
-
-    data = []
-
-    for record in attendance:
-
-        data.append({
-
-            "Employee ID": record.emp_id,
-
-            "Shift Date": record.shift_date,
-
-            "Login Time": record.login_time,
-
-            "Status": record.status
-        })
-
-    df = pd.DataFrame(data)
-
-    filename = "attendance_report.xlsx"
-
-    df.to_excel(
-
-        filename,
-
-        index=False
-    )
-
-    return FileResponse(
-
-        path=filename,
-
-        filename=filename,
-
-        media_type=
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition":
+            "attachment; filename=attendance_report.csv"
+        }
     )

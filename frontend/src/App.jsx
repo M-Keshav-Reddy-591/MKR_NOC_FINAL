@@ -2,29 +2,35 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
 
-import AdminDashboard from "./pages/dashboard/AdminDashboard";
-import EmployeeDashboard from "./pages/dashboard/EmployeeDashboard";
-
-import AlertsPage from "./pages/alerts/AlertsPage";
-import ReportsPage from "./pages/reports/ReportsPage";
-import AnalyticsPage from "./pages/analytics/AnalyticsPage";
-
-import LeavePage from "./pages/leaves/LeavePage";
-
-import ShiftAllocationPage from "./pages/shifts/ShiftAllocationPage";
-import ShiftSwapPage from "./pages/swaps/ShiftSwapPage";
-
-import EmployeesPage from "./pages/employees/EmployeesPage";
-
-import AttendanceControlPage from "./pages/attendance/AttendanceControlPage";
-
-import ProfilePage from "./pages/profile/ProfilePage";
-
-import ShiftCalender from "./pages/calendar/ShiftCalender";
+/* LAYOUTS */
 
 import AdminLayout from "./layouts/AdminLayout";
-import LiveAttendancePage from "./pages/attendance/LiveAttendancePage";
-import ServerStatusPage from "./pages/noc/ServerStatusPage";
+import EmployeeLayout from "./layouts/EmployeeLayout";
+
+/* PROTECTED ROUTE */
+
+import ProtectedRoute from "./components/ProtectedRoute";
+
+/* ADMIN PAGES */
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManualAttendance from "./pages/admin/ManualAttendance";
+import Reports from "./pages/admin/Reports";
+import Alerts from "./pages/admin/Alerts";
+import ExportReports from "./pages/admin/ExportReports";
+import ShiftManagement from "./pages/admin/ShiftManagement";
+import EmployeeManagement from "./pages/admin/EmployeeManagement";
+import AdminProfile from "./pages/admin/Profile";
+
+/* EMPLOYEE PAGES */
+
+import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
+import MarkAttendance from "./pages/employee/MarkAttendance";
+import DownloadAttendance from "./pages/employee/DownloadAttendance";
+import EmployeeProfile from "./pages/employee/Profile";
+import UpcomingShifts from "./pages/employee/UpcomingShifts";
+import ShiftHistory from "./pages/employee/ShiftHistory";
+
 function App() {
 
   return (
@@ -37,9 +43,15 @@ function App() {
 
         <Route path="/" element={<Login />} />
 
-        {/* ADMIN LAYOUT */}
+        {/* ADMIN */}
 
-        <Route element={<AdminLayout />}>
+        <Route
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
 
           <Route
             path="/admin-dashboard"
@@ -47,68 +59,81 @@ function App() {
           />
 
           <Route
+            path="/manual-attendance"
+            element={<ManualAttendance />}
+          />
+
+          <Route
+            path="/reports"
+            element={<Reports />}
+          />
+
+          <Route
+            path="/alerts"
+            element={<Alerts />}
+          />
+
+          <Route
+            path="/export-reports"
+            element={<ExportReports />}
+          />
+
+          <Route
+            path="/shifts"
+            element={<ShiftManagement />}
+          />
+
+          <Route
+            path="/employees"
+            element={<EmployeeManagement />}
+          />
+
+          <Route
+            path="/admin-profile"
+            element={<AdminProfile />}
+          />
+
+        </Route>
+
+        {/* EMPLOYEE */}
+
+        <Route
+          element={
+            <ProtectedRoute allowedRole="employee">
+              <EmployeeLayout />
+            </ProtectedRoute>
+          }
+        >
+
+          <Route
             path="/employee-dashboard"
             element={<EmployeeDashboard />}
           />
 
           <Route
-            path="/alerts"
-            element={<AlertsPage />}
+            path="/mark-attendance"
+            element={<MarkAttendance />}
           />
 
           <Route
-            path="/reports"
-            element={<ReportsPage />}
+            path="/download-attendance"
+            element={<DownloadAttendance />}
           />
 
           <Route
-            path="/analytics"
-            element={<AnalyticsPage />}
+            path="/employee-profile"
+            element={<EmployeeProfile />}
           />
+          <Route
+          path="/upcoming-shifts"
+          element={<UpcomingShifts />}
+        />
 
-          <Route
-            path="/leaves"
-            element={<LeavePage />}
-          />
+        <Route
+          path="/shift-history"
+          element={<ShiftHistory />}
+        />
 
-          <Route
-            path="/shift-allocation"
-            element={<ShiftAllocationPage />}
-          />
-
-          <Route
-            path="/shift-swaps"
-            element={<ShiftSwapPage />}
-          />
-
-          <Route
-            path="/employees"
-            element={<EmployeesPage />}
-          />
-
-          <Route
-            path="/attendance-control"
-            element={<AttendanceControlPage />}
-          />
-
-          <Route
-            path="/profile"
-            element={<ProfilePage />}
-          />
-
-          <Route
-            path="/shift-calendar"
-            element={<ShiftCalender />}
-          />
-          <Route
-            path="/live-attendance"
-            element={<LiveAttendancePage />}
-          />
-
-          <Route
-            path="/server-status"
-            element={<ServerStatusPage />}
-          />
         </Route>
 
       </Routes>

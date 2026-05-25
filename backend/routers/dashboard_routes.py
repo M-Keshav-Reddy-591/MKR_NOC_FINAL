@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from database import get_db
+from fastapi import APIRouter
+from database import SessionLocal
 import models
-from datetime import date
 
 router = APIRouter(
     prefix="/api/v1/dashboard",
@@ -11,63 +8,62 @@ router = APIRouter(
 )
 
 @router.get("/stats")
-def get_dashboard_stats(db: Session = Depends(get_db)):
+def get_dashboard_stats():
 
-    today = date.today()
+    db = SessionLocal()
 
-    total_employees = db.query(models.Employee).count()
-
-    present_today = db.query(models.Attendance).filter(
-        models.Attendance.attendance_date == today,
-        models.Attendance.status == "Present"
+    total_employees = db.query(
+        models.Employee
     ).count()
 
-    absent_today = total_employees - present_today
-
-    total_leaves = db.query(models.Leave).filter(
-        models.Leave.status == "Approved"
+    total_attendance = db.query(
+        models.Attendance
     ).count()
 
-    total_shifts = db.query(models.Shift).count()
-
-    attendance_percentage = 0
-
-    if total_employees > 0:
-        attendance_percentage = round(
-            (present_today / total_employees) * 100,
-            2
-        )
+    total_shifts = db.query(
+        models.ShiftAssignment
+    ).count()
 
     return {
+
         "total_employees": total_employees,
-        "present_today": present_today,
-        "absent_today": absent_today,
-        "total_leaves": total_leaves,
-        "total_shifts": total_shifts,
-        "attendance_percentage": attendance_percentage
+        "total_attendance": total_attendance,
+        "total_shifts": total_shifts
+
     }
 
+@router.get("/absent-employees")
+def get_absent_employees():
 
-@router.get("/recent-attendance")
-def recent_attendance(db: Session = Depends(get_db)):
+    db = SessionLocal()
 
-    records = db.query(models.Attendance).order_by(
-        models.Attendance.id.desc()
-    ).limit(10).all()
+    employees = db.query(
+        models.Employee
+    ).all()
 
-    result = []
+    attendance_records = db.query(
+        models.Attendance
+    ).all()
 
-    for record in records:
+    present_ids = []
 
-        employee = db.query(models.Employee).filter(
-            models.Employee.id == record.employee_id
-        ).first()
+    for row in attendance_records:
 
-        result.append({
-            "emp_id": employee.emp_id,
-            "emp_name": employee.emp_name,
-            "status": record.status,
-            "date": record.attendance_date
-        })
+        present_ids.append(
+            row.employee_id
+        )
 
-    return result
+    absent = []
+
+    for emp in employees:
+
+        if emp.id not in present_ids:
+
+            absent.append({
+
+                "emp_id": emp.emp_id,
+                "emp_name": emp.emp_name
+
+            })
+
+    return absent

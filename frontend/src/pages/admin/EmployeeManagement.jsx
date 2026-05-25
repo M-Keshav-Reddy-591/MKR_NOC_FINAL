@@ -1,319 +1,305 @@
-import {
-
-    useEffect,
-
-    useState
-
-} from "react";
-
-import DashboardLayout from "../../components/layout/DashboardLayout";
-
-import API from "../../api/axios";
-
-import { useToast } from "../../context/ToastContext";
-
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function EmployeeManagement() {
 
-    const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
-    const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
+    emp_id: "",
+    emp_name: "",
+    department: "",
+    designation: "",
+    password: "",
+    role: "employee"
+  });
 
-        emp_id: "",
+  useEffect(() => {
 
-        name: "",
+    fetchEmployees();
 
-        department: "",
+  }, []);
 
-        role: "employee",
+  const fetchEmployees = async () => {
 
-        password: ""
+    try {
+
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/v1/employees"
+      );
+
+      setEmployees(response.data);
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  };
+
+  const handleChange = (e) => {
+
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
     });
+  };
 
+  const addEmployee = async () => {
 
-    const {
+    try {
 
-        successToast,
+      await axios.post(
+        "http://127.0.0.1:8000/api/v1/auth/register",
+        formData
+      );
 
-        errorToast
+      alert("Employee Added");
 
-    } = useToast();
+      fetchEmployees();
 
+      setFormData({
+        emp_id: "",
+        emp_name: "",
+        department: "",
+        designation: "",
+        password: "",
+        role: "employee"
+      });
 
-    // ======================================
-    // FETCH EMPLOYEES
-    // ======================================
+    } catch (error) {
 
-    const fetchEmployees = async () => {
+      console.log(error);
 
-        try {
+      alert("Failed");
+    }
+  };
 
-            const response = await API.get(
-                "/employees/all"
-            );
+  const deleteEmployee = async (id) => {
 
-            setEmployees(response.data);
-        }
+    try {
 
-        catch (error) {
+      await axios.delete(
+        `http://127.0.0.1:8000/api/v1/employees/${id}`
+      );
 
-            console.log(error);
-        }
-    };
+      fetchEmployees();
 
+    } catch (error) {
 
-    useEffect(() => {
+      console.log(error);
+    }
+  };
 
-        fetchEmployees();
+  return (
 
-    }, []);
+    <div className="w-full min-h-screen bg-gray-100 p-10">
 
+      <div className="mb-10">
 
-    // ======================================
-    // HANDLE CHANGE
-    // ======================================
+        <h1 className="text-5xl font-bold text-gray-800">
 
-    const handleChange = (e) => {
+          Employee Management
 
-        setFormData({
+        </h1>
 
-            ...formData,
+        <p className="text-gray-500 mt-3 text-lg">
 
-            [e.target.name]: e.target.value
-        });
-    };
+          Manage all employees
 
+        </p>
 
-    // ======================================
-    // ADD EMPLOYEE
-    // ======================================
+      </div>
 
-    const addEmployee = async (e) => {
+      {/* ADD FORM */}
 
-        e.preventDefault();
+      <div className="bg-white p-10 rounded-3xl shadow-xl mb-10">
 
-        try {
+        <h2 className="text-3xl font-bold mb-8">
 
-            await API.post(
+          Add Employee
 
-                "/auth/register",
+        </h2>
 
-                formData
-            );
+        <div className="grid grid-cols-3 gap-6">
 
+          <input
+            type="text"
+            name="emp_id"
+            placeholder="Employee ID"
+            value={formData.emp_id}
+            onChange={handleChange}
+            className="p-4 rounded-xl border"
+          />
 
-            successToast(
-                "Employee Added Successfully"
-            );
+          <input
+            type="text"
+            name="emp_name"
+            placeholder="Employee Name"
+            value={formData.emp_name}
+            onChange={handleChange}
+            className="p-4 rounded-xl border"
+          />
 
+          <input
+            type="text"
+            name="department"
+            placeholder="Department"
+            value={formData.department}
+            onChange={handleChange}
+            className="p-4 rounded-xl border"
+          />
 
-            fetchEmployees();
+          <input
+            type="text"
+            name="designation"
+            placeholder="Designation"
+            value={formData.designation}
+            onChange={handleChange}
+            className="p-4 rounded-xl border"
+          />
 
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="p-4 rounded-xl border"
+          />
 
-            setFormData({
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="p-4 rounded-xl border"
+          >
 
-                emp_id: "",
+            <option value="employee">
+              Employee
+            </option>
 
-                name: "",
+            <option value="admin">
+              Admin
+            </option>
 
-                department: "",
+          </select>
 
-                role: "employee",
+        </div>
 
-                password: ""
-            });
-        }
+        <button
+          onClick={addEmployee}
+          className="mt-8 bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold text-lg"
+        >
+          Add Employee
+        </button>
 
-        catch (error) {
+      </div>
 
-            console.log(error);
+      {/* EMPLOYEE TABLE */}
 
-            errorToast(
-                "Failed To Add Employee"
-            );
-        }
-    };
+      <div className="bg-white rounded-3xl shadow-2xl p-10">
 
+        <h2 className="text-3xl font-bold mb-8">
 
-    return (
+          Employee List
 
-        <DashboardLayout>
+        </h2>
 
-            {/* ================================= */}
-            {/* PAGE HEADER */}
-            {/* ================================= */}
+        <table className="w-full">
 
-            <div className="mb-8">
+          <thead>
 
-                <h1 className="text-4xl font-bold dark:text-white">
+            <tr className="bg-gray-100">
 
-                    Employee Management
-                </h1>
+              <th className="p-5 text-left">
+                Employee ID
+              </th>
 
-                <p className="text-gray-500 dark:text-gray-300 mt-2">
+              <th className="p-5 text-left">
+                Name
+              </th>
 
-                    Manage workforce and employee accounts
-                </p>
-            </div>
+              <th className="p-5 text-left">
+                Department
+              </th>
 
+              <th className="p-5 text-left">
+                Designation
+              </th>
 
-            {/* ================================= */}
-            {/* ADD EMPLOYEE FORM */}
-            {/* ================================= */}
+              <th className="p-5 text-left">
+                Role
+              </th>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-6 mb-10">
+              <th className="p-5 text-left">
+                Action
+              </th>
 
-                <h2 className="text-2xl font-bold mb-6 dark:text-white">
+            </tr>
 
-                    Add Employee
-                </h2>
+          </thead>
 
+          <tbody>
 
-                <form
-                    onSubmit={addEmployee}
-                    className="grid grid-cols-2 gap-5"
+            {
+              employees.map((emp) => (
+
+                <tr
+                  key={emp.id}
+                  className="border-b hover:bg-gray-50"
                 >
 
-                    <input
-                        type="text"
-                        name="emp_id"
-                        value={formData.emp_id}
-                        onChange={handleChange}
-                        placeholder="Employee ID"
-                        className="border p-4 rounded-xl dark:bg-slate-700 dark:text-white"
-                    />
+                  <td className="p-5">
+                    {emp.emp_id}
+                  </td>
 
+                  <td className="p-5">
+                    {emp.emp_name}
+                  </td>
 
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Employee Name"
-                        className="border p-4 rounded-xl dark:bg-slate-700 dark:text-white"
-                    />
+                  <td className="p-5">
+                    {emp.department}
+                  </td>
 
+                  <td className="p-5">
+                    {emp.designation}
+                  </td>
 
-                    <input
-                        type="text"
-                        name="department"
-                        value={formData.department}
-                        onChange={handleChange}
-                        placeholder="Department"
-                        className="border p-4 rounded-xl dark:bg-slate-700 dark:text-white"
-                    />
+                  <td className="p-5">
 
+                    <span className={`px-4 py-2 rounded-full text-white text-sm ${
+                      emp.role === "admin"
+                        ? "bg-purple-600"
+                        : "bg-green-600"
+                    }`}>
 
-                    <select
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className="border p-4 rounded-xl dark:bg-slate-700 dark:text-white"
-                    >
+                      {emp.role}
 
-                        <option value="employee">
+                    </span>
 
-                            Employee
-                        </option>
+                  </td>
 
-                        <option value="admin">
-
-                            Admin
-                        </option>
-                    </select>
-
-
-                    <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Password"
-                        className="border p-4 rounded-xl dark:bg-slate-700 dark:text-white col-span-2"
-                    />
-
+                  <td className="p-5">
 
                     <button
-                        type="submit"
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-semibold col-span-2"
+                      onClick={() => deleteEmployee(emp.id)}
+                      className="bg-red-600 text-white px-5 py-2 rounded-xl"
                     >
-
-                        Add Employee
+                      Delete
                     </button>
-                </form>
-            </div>
 
+                  </td>
 
-            {/* ================================= */}
-            {/* EMPLOYEE TABLE */}
-            {/* ================================= */}
+                </tr>
+              ))
+            }
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-6">
+          </tbody>
 
-                <h2 className="text-2xl font-bold mb-6 dark:text-white">
+        </table>
 
-                    Employee List
-                </h2>
+      </div>
 
-
-                <table className="w-full">
-
-                    <thead className="bg-slate-900 text-white">
-
-                        <tr>
-
-                            <th className="p-4 text-left">
-                                Employee ID
-                            </th>
-
-                            <th className="p-4 text-left">
-                                Name
-                            </th>
-
-                            <th className="p-4 text-left">
-                                Department
-                            </th>
-
-                            <th className="p-4 text-left">
-                                Role
-                            </th>
-                        </tr>
-                    </thead>
-
-
-                    <tbody>
-
-                        {employees.map((employee) => (
-
-                            <tr
-                                key={employee.id}
-                                className="border-b dark:border-slate-700"
-                            >
-
-                                <td className="p-4 dark:text-white">
-
-                                    {employee.emp_id}
-                                </td>
-
-                                <td className="p-4 dark:text-white">
-
-                                    {employee.name}
-                                </td>
-
-                                <td className="p-4 dark:text-white">
-
-                                    {employee.department}
-                                </td>
-
-                                <td className="p-4 dark:text-white">
-
-                                    {employee.role}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </DashboardLayout>
-    );
+    </div>
+  );
 }

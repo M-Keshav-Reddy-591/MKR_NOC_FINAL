@@ -15,6 +15,12 @@ from routers import leave_routes
 from routers import report_routes
 from routers import swap_routes
 from routers import live_attendance_routes
+from routers import export_routes
+from routers import csv_upload_routes
+
+
+
+
 # ==========================================
 # CREATE DATABASE TABLES
 # ==========================================
@@ -58,8 +64,8 @@ app.include_router(leave_routes.router)
 app.include_router(report_routes.router)
 app.include_router(swap_routes.router)
 app.include_router(live_attendance_routes.router)
-
-
+app.include_router(export_routes.router)
+app.include_router(csv_upload_routes.router)
 
 # ==========================================
 # ROOT

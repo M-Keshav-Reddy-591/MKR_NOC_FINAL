@@ -35,6 +35,8 @@ class Employee(Base):
 # ATTENDANCE TABLE
 # =========================================
 
+
+
 class Attendance(Base):
 
     __tablename__ = "attendance"
@@ -46,9 +48,9 @@ class Attendance(Base):
         ForeignKey("employees.id")
     )
 
-    attendance_date = Column(Date)
+    status = Column(String(20))
 
-    check_in = Column(Time)
+    check_in = Column(DateTime, default=datetime.utcnow)
 
     check_out = Column(Time)
 
@@ -78,10 +80,7 @@ class ShiftAssignment(Base):
         index=True
     )
 
-    employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
+    employee_id = Column(Integer, ForeignKey("employees.id"))
 
     shift_id = Column(
         Integer,

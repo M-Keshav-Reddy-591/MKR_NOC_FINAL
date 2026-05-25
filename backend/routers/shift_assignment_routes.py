@@ -1,43 +1,42 @@
-from fastapi import APIRouter
-from database import SessionLocal
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from datetime import date
+
+import database
 import models
-import schemas
 
 router = APIRouter(
     prefix="/api/v1/shift-assignments",
     tags=["Shift Assignments"]
 )
 
-@router.post("/assign")
-
-def assign_shift(
-    shift_data: schemas.ShiftAssignSchema
+@router.get("/{emp_id}")
+def upcoming_shifts(
+    emp_id: str,
+    db: Session = Depends(database.get_db)
 ):
 
-    db = SessionLocal()
-
-    assignment = models.ShiftAssignment(
-
-        employee_id=shift_data.employee_id,
-        shift_id=shift_data.shift_id,
-        assigned_date=shift_data.assigned_date
-    )
-
-    db.add(assignment)
-
-    db.commit()
-
-    return {
-        "message": "Shift assigned successfully"
-    }
-
-
-@router.get("/all")
-
-def get_assignments():
-
-    db = SessionLocal()
-
-    return db.query(
+    shifts = db.query(
         models.ShiftAssignment
+    ).filter(
+        models.ShiftAssignment.employee_id == emp_id,
+        models.ShiftAssignment.shift_date >= date.today()
     ).all()
+
+    return shifts
+
+
+@router.get("/history/{emp_id}")
+def shift_history(
+    emp_id: str,
+    db: Session = Depends(database.get_db)
+):
+
+    history = db.query(
+        models.ShiftAssignment
+    ).filter(
+        models.ShiftAssignment.employee_id == emp_id,
+        models.ShiftAssignment.shift_date < date.today()
+    ).all()
+
+    return history

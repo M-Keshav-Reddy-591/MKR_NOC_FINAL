@@ -1,55 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from datetime import datetime, date
+from datetime import date
 
+import database
 import models
-import schemas
-
-from database import SessionLocal
 
 router = APIRouter(
     prefix="/api/v1/attendance",
     tags=["Attendance"]
 )
 
-def get_db():
-
-    db = SessionLocal()
-
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# MARK ATTENDANCE
-
-@router.post("/mark")
-
-def mark_attendance(
-    attendance_data: schemas.AttendanceSchema,
-    db: Session = Depends(get_db)
+@router.get("")
+def get_attendance(
+    db: Session = Depends(database.get_db)
 ):
 
-    employee = db.query(models.Employee).filter(
-        models.Employee.id == attendance_data.employee_id
-    ).first()
+    return db.query(models.Attendance).all()
 
-    if not employee:
-        raise HTTPException(
-            status_code=404,
-            detail="Employee not found"
-        )
+
+@router.post("")
+def mark_attendance(
+    attendance_data: dict,
+    db: Session = Depends(database.get_db)
+):
 
     attendance = models.Attendance(
-
-        employee_id=attendance_data.employee_id,
-
-        date=date.today(),
-
-        check_in=datetime.now(),
-
-        status=attendance_data.status
+        emp_id=attendance_data["emp_id"],
+        status=attendance_data["status"],
+        date=date.today()
     )
 
     db.add(attendance)
@@ -58,19 +36,14 @@ def mark_attendance(
 
     db.refresh(attendance)
 
-    return {
-        "message": "Attendance marked successfully"
-    }
+    return attendance
 
 
-# GET ALL ATTENDANCE
-
-@router.get("/all")
-
-def get_attendance(
-    db: Session = Depends(get_db)
+@router.get("/absent")
+def absent_employees(
+    db: Session = Depends(database.get_db)
 ):
 
-    data = db.query(models.Attendance).all()
-
-    return data
+    return db.query(models.Attendance).filter(
+        models.Attendance.status == "Absent"
+    ).all()

@@ -1,44 +1,90 @@
-from fastapi import APIRouter
-from database import SessionLocal
+from fastapi import APIRouter, Depends, UploadFile, File
+from sqlalchemy.orm import Session
+
+import database
 import models
-import schemas
+import csv
+import io
 
 router = APIRouter(
     prefix="/api/v1/shifts",
     tags=["Shifts"]
 )
 
-@router.post("/create")
-
-def create_shift(
-    shift_data: schemas.ShiftSchema
+@router.get("")
+def get_shifts(
+    db: Session = Depends(database.get_db)
 ):
 
-    db = SessionLocal()
+    return db.query(models.Shift).all()
 
-    shift = models.Shift(
 
-        shift_name=shift_data.shift_name,
-        start_time=shift_data.start_time,
-        end_time=shift_data.end_time,
-        description=shift_data.description
+@router.post("")
+def create_shift(
+    shift_data: dict,
+    db: Session = Depends(database.get_db)
+):
+
+    new_shift = models.Shift(
+        shift_name=shift_data["shift_name"],
+        start_time=shift_data["start_time"],
+        end_time=shift_data["end_time"]
     )
 
-    db.add(shift)
+    db.add(new_shift)
+
+    db.commit()
+
+    db.refresh(new_shift)
+
+    return new_shift
+
+
+@router.delete("/{shift_id}")
+def delete_shift(
+    shift_id: int,
+    db: Session = Depends(database.get_db)
+):
+
+    shift = db.query(models.Shift).filter(
+        models.Shift.id == shift_id
+    ).first()
+
+    if shift:
+
+        db.delete(shift)
+
+        db.commit()
+
+    return {
+        "message": "Shift Deleted"
+    }
+
+
+@router.post("/upload-csv")
+async def upload_shift_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(database.get_db)
+):
+
+    content = await file.read()
+
+    csv_reader = csv.DictReader(
+        io.StringIO(content.decode("utf-8"))
+    )
+
+    for row in csv_reader:
+
+        shift = models.Shift(
+            shift_name=row["shift_name"],
+            start_time=row["start_time"],
+            end_time=row["end_time"]
+        )
+
+        db.add(shift)
 
     db.commit()
 
     return {
-        "message": "Shift created successfully"
+        "message": "CSV Uploaded Successfully"
     }
-
-
-@router.get("/all")
-
-def get_shifts():
-
-    db = SessionLocal()
-
-    return db.query(
-        models.Shift
-    ).all()

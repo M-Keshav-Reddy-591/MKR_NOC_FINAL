@@ -1,7 +1,7 @@
-export default function ProfilePage() {
+export default function SystemLogsPage() {
   return (
     <div className="p-6 text-3xl font-bold">
-      Employee Profile Page
+      System Logs Page
     </div>
   );
 }
