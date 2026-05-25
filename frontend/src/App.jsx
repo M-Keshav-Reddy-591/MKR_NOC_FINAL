@@ -9,6 +9,7 @@ import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 
 import PerformancePage from "./pages/performance/PerformancePage";
+import EmployeePerformanceTracker from "./pages/performance/EmployeePerformanceTracker";
 
 import SystemLogsPage from "./pages/logs/SystemLogsPage";
 
@@ -28,13 +29,23 @@ import ShiftAllocationPage from "./pages/shifts/ShiftAllocationPage";
 
 import ShiftSwapPage from "./pages/swaps/ShiftSwapPage";
 
+import LiveShiftBoard from "./pages/shifts/LiveShiftBoard";
+
 import EmployeesPage from "./pages/employees/EmployeesPage";
 
 import AttendanceControlPage from "./pages/attendance/AttendanceControlPage";
 
 import NOCStatusPage from "./pages/noc/NOCStatusPage";
 
+import NOCOperationsCenter from "./pages/noc/NOCOperationsCenter";
+
 import SettingsPage from "./pages/settings/SettingsPage";
+
+import SystemHealthPage from "./pages/system/SystemHealthPage";
+
+import IncidentManagementPage from "./pages/incidents/IncidentManagementPage";
+
+import EmployeeActivityMonitor from "./pages/monitoring/EmployeeActivityMonitor";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -44,9 +55,11 @@ function App() {
       <Routes>
 
         {/* LOGIN */}
+
         <Route path="/" element={<Login />} />
 
         {/* MAIN LAYOUT */}
+
         <Route element={<AdminLayout />}>
 
           {/* ================= ADMIN ROUTES ================= */}
@@ -115,10 +128,28 @@ function App() {
           />
 
           <Route
+            path="/employee-performance"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EmployeePerformanceTracker />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/system-logs"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <SystemLogsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/system-health"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <SystemHealthPage />
               </ProtectedRoute>
             }
           />
@@ -142,6 +173,15 @@ function App() {
           />
 
           <Route
+            path="/live-shift-board"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <LiveShiftBoard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/shift-calendar"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
@@ -155,6 +195,33 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <NOCStatusPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/noc-operations"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <NOCOperationsCenter />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/incidents"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <IncidentManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/employee-monitor"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EmployeeActivityMonitor />
               </ProtectedRoute>
             }
           />
