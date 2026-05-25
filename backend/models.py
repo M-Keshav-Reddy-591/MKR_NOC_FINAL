@@ -2,7 +2,12 @@ from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
-
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Date
+from sqlalchemy import Time
+from sqlalchemy import ForeignKey
 
 # =========================================
 # EMPLOYEE TABLE
@@ -31,6 +36,7 @@ class Employee(Base):
 # =========================================
 
 class Attendance(Base):
+
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -40,31 +46,25 @@ class Attendance(Base):
         ForeignKey("employees.id")
     )
 
-    date = Column(Date)
+    attendance_date = Column(Date)
 
-    check_in = Column(DateTime)
+    check_in = Column(Time)
 
-    check_out = Column(DateTime)
+    check_out = Column(Time)
 
     status = Column(String(50))
-
-    employee = relationship("Employee")
 
 class Shift(Base):
 
     __tablename__ = "shifts"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
 
     shift_name = Column(String(100))
 
-    start_time = Column(String(50))
+    start_time = Column(String(20))
 
-    end_time = Column(String(50))
+    end_time = Column(String(20))
 
     description = Column(String(255))
 

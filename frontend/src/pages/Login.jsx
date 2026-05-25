@@ -9,9 +9,20 @@ export default function Login() {
 
   const [password, setPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async () => {
 
+    if (!empId || !password) {
+
+      alert("Please fill all fields");
+
+      return;
+    }
+
     try {
+
+      setLoading(true);
 
       const response = await axios.post(
         "http://127.0.0.1:8000/api/v1/auth/login",
@@ -22,23 +33,31 @@ export default function Login() {
         }
       );
 
+      console.log(response.data);
+
       localStorage.setItem(
         "token",
         response.data.access_token
       );
-      localStorage.setItem("token", response.data.access_token);
-localStorage.setItem("role", response.data.role);
-localStorage.setItem("emp_id", response.data.emp_id);
-localStorage.setItem("emp_name", response.data.emp_name);
 
       localStorage.setItem(
         "role",
-        role
+        response.data.role
+      );
+
+      localStorage.setItem(
+        "emp_id",
+        response.data.emp_id
+      );
+
+      localStorage.setItem(
+        "emp_name",
+        response.data.emp_name
       );
 
       alert("Login Successful");
 
-      if (role === "admin") {
+      if (response.data.role === "admin") {
 
         window.location.href = "/admin-dashboard";
 
@@ -49,80 +68,123 @@ localStorage.setItem("emp_name", response.data.emp_name);
 
     } catch (error) {
 
-      alert("Invalid Credentials");
+      console.log(error);
+
+      if (error.response) {
+
+        alert(error.response.data.detail);
+
+      } else {
+
+        alert("Server Error");
+      }
+
+    } finally {
+
+      setLoading(false);
     }
   };
 
   return (
 
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-6">
 
-      <div className="bg-white p-10 rounded-2xl shadow-2xl w-[420px]">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl w-full max-w-md p-10">
 
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+        <div className="text-center mb-10">
 
-          NOC Attendance System
+          <h1 className="text-4xl font-bold text-white mb-3">
+            NOC SYSTEM
+          </h1>
 
-        </h1>
+          <p className="text-slate-300">
+            Network Operations Attendance Portal
+          </p>
 
-        {/* LOGIN BUTTONS */}
+        </div>
+
+        {/* ROLE BUTTONS */}
 
         <div className="flex gap-4 mb-8">
 
           <button
             onClick={() => setRole("admin")}
-            className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+            className={`flex-1 py-3 rounded-2xl font-bold transition-all duration-300 ${
               role === "admin"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
+                ? "bg-blue-600 text-white shadow-lg"
+                : "bg-white/20 text-white"
             }`}
           >
-            Admin Login
+            Admin
           </button>
 
           <button
             onClick={() => setRole("employee")}
-            className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+            className={`flex-1 py-3 rounded-2xl font-bold transition-all duration-300 ${
               role === "employee"
-                ? "bg-green-600 text-white"
-                : "bg-gray-200"
+                ? "bg-green-600 text-white shadow-lg"
+                : "bg-white/20 text-white"
             }`}
           >
-            Employee Login
+            Employee
           </button>
 
         </div>
 
-        {/* FORM */}
+        {/* EMPLOYEE ID */}
 
-        <input
-          type="text"
-          placeholder="Employee ID"
-          value={empId}
-          onChange={(e) => setEmpId(e.target.value)}
-          className="w-full border p-3 rounded-xl mb-4"
-        />
+        <div className="mb-5">
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-3 rounded-xl mb-6"
-        />
+          <label className="text-white block mb-2">
+            Employee ID
+          </label>
+
+          <input
+            type="text"
+            placeholder="Enter Employee ID"
+            value={empId}
+            onChange={(e) => setEmpId(e.target.value)}
+            className="w-full p-4 rounded-2xl bg-white/20 border border-white/20 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+        </div>
+
+        {/* PASSWORD */}
+
+        <div className="mb-8">
+
+          <label className="text-white block mb-2">
+            Password
+          </label>
+
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-4 rounded-2xl bg-white/20 border border-white/20 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+        </div>
+
+        {/* LOGIN BUTTON */}
 
         <button
           onClick={handleLogin}
-          className={`w-full py-3 rounded-xl text-white font-bold text-lg ${
+          disabled={loading}
+          className={`w-full py-4 rounded-2xl text-white font-bold text-lg transition-all duration-300 ${
             role === "admin"
-              ? "bg-blue-600"
-              : "bg-green-600"
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-green-600 hover:bg-green-700"
           }`}
         >
-          Login as {role}
+
+          {loading ? "Logging in..." : `Login as ${role}`}
+
         </button>
 
       </div>
+
     </div>
   );
 }

@@ -14,7 +14,7 @@ from routers import dashboard_routes
 from routers import leave_routes
 from routers import report_routes
 from routers import swap_routes
-
+from routers import live_attendance_routes
 # ==========================================
 # CREATE DATABASE TABLES
 # ==========================================
@@ -57,7 +57,7 @@ app.include_router(dashboard_routes.router)
 app.include_router(leave_routes.router)
 app.include_router(report_routes.router)
 app.include_router(swap_routes.router)
-
+app.include_router(live_attendance_routes.router)
 
 
 

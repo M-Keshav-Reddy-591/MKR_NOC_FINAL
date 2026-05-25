@@ -140,7 +140,21 @@ export default function Sidebar() {
           >
             {menu.name}
           </Link>
+          
         ))}
+        <Link
+        to="/live-attendance"
+        className="block p-4 rounded-xl bg-gray-800 hover:bg-blue-600 transition"
+        >
+        Live Attendance
+        </Link>
+
+        <Link
+        to="/server-status"
+        className="block p-4 rounded-xl bg-gray-800 hover:bg-blue-600 transition"
+        >
+        Server Status
+        </Link>
 
       </nav>
 

@@ -1,7 +1,0 @@
-export default function ShiftCalendar() {
-  return (
-    <div className="p-6 text-3xl font-bold">
-      Shift Calendar Page
-    </div>
-  );
-}
