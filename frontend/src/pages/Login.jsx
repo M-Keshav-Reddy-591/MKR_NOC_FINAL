@@ -26,6 +26,10 @@ export default function Login() {
         "token",
         response.data.access_token
       );
+      localStorage.setItem("token", response.data.access_token);
+localStorage.setItem("role", response.data.role);
+localStorage.setItem("emp_id", response.data.emp_id);
+localStorage.setItem("emp_name", response.data.emp_name);
 
       localStorage.setItem(
         "role",
