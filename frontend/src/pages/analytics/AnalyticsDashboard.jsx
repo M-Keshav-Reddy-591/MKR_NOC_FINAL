@@ -1,7 +1,7 @@
-export default function ShiftCalendar() {
+export default function AnalyticsDashboard() {
   return (
     <div className="p-6 text-3xl font-bold">
-      Shift Calendar Page
+      Analytics Dashboard
     </div>
   );
 }

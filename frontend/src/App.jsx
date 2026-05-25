@@ -4,7 +4,9 @@ import Login from "./pages/Login";
 
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import EmployeeDashboard from "./pages/dashboard/EmployeeDashboard";
-
+import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
+import PerformancePage from "./pages/performance/PerformancePage";
+import SystemLogsPage from "./pages/logs/SystemLogsPage";
 import AlertsPage from "./pages/alerts/AlertsPage";
 import ReportsPage from "./pages/reports/ReportsPage";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
@@ -18,6 +20,8 @@ import EmployeesPage from "./pages/employees/EmployeesPage";
 import AttendanceControlPage from "./pages/attendance/AttendanceControlPage";
 import NOCStatusPage from "./pages/noc/NOCStatusPage";
 import SettingsPage from "./pages/settings/SettingsPage";
+
+
 function App() {
   return (
     <BrowserRouter>
@@ -45,7 +49,9 @@ function App() {
   path="/shift-allocation"
   element={<ShiftAllocationPage />}
 />
-
+<Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
+<Route path="/performance" element={<PerformancePage />} />
+<Route path="/system-logs" element={<SystemLogsPage />} />
 <Route
   path="/shift-swaps"
   element={<ShiftSwapPage />}
