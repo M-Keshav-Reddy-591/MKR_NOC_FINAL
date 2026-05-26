@@ -11,6 +11,7 @@ from sqlalchemy import ForeignKey
 from datetime import datetime
 from database import get_db
 from database import Base
+from sqlalchemy import Boolean
 
 
 
@@ -41,24 +42,68 @@ class Attendance(Base):
     check_in = Column(DateTime, default=datetime.utcnow)
     check_out = Column(DateTime, nullable=True)
 
-class HolidayWorkLog(Base):
-    __tablename__ = "holiday_work_log"
-    id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))
-    shift_date = Column(Date)
-    shift_name = Column(String(50))
-    note = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+# class HolidayWorkLog(Base):
+#     __tablename__ = "holiday_work_log"
+#     id = Column(Integer, primary_key=True, index=True)
+#     employee_id = Column(Integer, ForeignKey("employees.id"))
+#     shift_date = Column(Date)
+#     shift_name = Column(String(50))
+#     note = Column(Text)
+#     created_at = Column(DateTime, default=datetime.utcnow)
 
+# class ManualShiftAssignment(Base):
+#     __tablename__ = "manual_shift_assignments"
+#     id = Column(Integer, primary_key=True, index=True)
+#     employee_id = Column(Integer, ForeignKey("employees.id"))
+#     shift_date = Column(Date)
+#     shift_name = Column(String(50))
+#     is_holiday = Column(Integer, default=0)  # use 0/1 for boolean
+#     holiday_note = Column(Text)
+#     created_at = Column(DateTime, default=datetime.utcnow)
 class ManualShiftAssignment(Base):
+
     __tablename__ = "manual_shift_assignments"
+
     id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))
+
+    employee_id = Column(String(20))
+
     shift_date = Column(Date)
+
     shift_name = Column(String(50))
-    is_holiday = Column(Integer, default=0)  # use 0/1 for boolean
+
+    start_time = Column(Time)
+
+    end_time = Column(Time)
+
+    is_holiday = Column(Boolean, default=False)
+
     holiday_note = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+
+    assigned_by = Column(String(100))
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+
+class HolidayWorkLog(Base):
+
+    __tablename__ = "holiday_work_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    employee_id = Column(String(20))
+
+    work_date = Column(Date)
+
+    note = Column(Text)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
 
 
 
