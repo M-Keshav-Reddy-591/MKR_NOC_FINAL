@@ -12,167 +12,53 @@ from datetime import datetime
 from database import get_db
 from database import Base
 
-# =========================================
-# EMPLOYEE TABLE
-# =========================================
+
 
 class Employee(Base):
     __tablename__ = "employees"
-
     id = Column(Integer, primary_key=True, index=True)
-
-    emp_id = Column(String(50), unique=True, nullable=False)
-
-    emp_name = Column(String(100), nullable=False)
-
+    emp_id = Column(String(20), unique=True, index=True)
+    emp_name = Column(String(100))
     department = Column(String(100))
-
     designation = Column(String(100))
-
-    password = Column(String(100), nullable=False)
-
-    role = Column(String(20), default="employee")
-
-
-# =========================================
-# ATTENDANCE TABLE
-# =========================================
-
-
-
-class Attendance(Base):
-
-    __tablename__ = "attendance"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
-
-    status = Column(String(20))
-
-    check_in = Column(DateTime, default=datetime.utcnow)
-
-    check_out = Column(Time)
-
-    status = Column(String(50))
-
-class Shift(Base):
-
-    __tablename__ = "shifts"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    shift_name = Column(String(100))
-
-    start_time = Column(String(20))
-
-    end_time = Column(String(20))
-
-    description = Column(String(255))
+    password = Column(String(255))
+    role = Column(String(20))
 
 class ShiftAssignment(Base):
-
     __tablename__ = "shift_assignments"
-
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
-
-    employee_id = Column(Integer, ForeignKey("employees.id"))
-
-    shift_id = Column(
-        Integer,
-        ForeignKey("shifts.id")
-    )
-
-    assigned_date = Column(Date)
-class Leave(Base):
-
-    __tablename__ = "leaves"
-
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
-
-    employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
-
-    leave_type = Column(
-        String(100)
-    )
-
-    start_date = Column(Date)
-
-    end_date = Column(Date)
-
-    reason = Column(String(255))
-
-    status = Column(
-        String(50),
-        default="Pending"
-    )
-class ShiftSwap(Base):
-
-    __tablename__ = "shift_swaps"
-
     id = Column(Integer, primary_key=True, index=True)
-
-    requester_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
-
-    target_employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
-
-    current_shift_id = Column(
-        Integer,
-        ForeignKey("shifts.id")
-    )
-
-    requested_shift_id = Column(
-        Integer,
-        ForeignKey("shifts.id")
-    )
-
-    status = Column(String(50), default="Pending")
-
-class HolidayWorkLog(Base):
-
-    __tablename__ = "holiday_work_log"
-
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
-
-    employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
-
+    employee_id = Column(Integer, ForeignKey("employees.id"))
+    shift_name = Column(String(50))
+    start_time = Column(Time)
+    end_time = Column(Time)
     shift_date = Column(Date)
 
+class Attendance(Base):
+    __tablename__ = "attendance"
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("employees.id"))
+    status = Column(String(20))
+    check_in = Column(DateTime, default=datetime.utcnow)
+    check_out = Column(DateTime, nullable=True)
+
+class HolidayWorkLog(Base):
+    __tablename__ = "holiday_work_log"
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("employees.id"))
+    shift_date = Column(Date)
     shift_name = Column(String(50))
-
     note = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow
-    )
+class ManualShiftAssignment(Base):
+    __tablename__ = "manual_shift_assignments"
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("employees.id"))
+    shift_date = Column(Date)
+    shift_name = Column(String(50))
+    is_holiday = Column(Integer, default=0)  # use 0/1 for boolean
+    holiday_note = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 
