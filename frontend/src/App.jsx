@@ -23,6 +23,7 @@ import ShiftManagement from "./pages/admin/ShiftManagement";
 import EmployeeManagement from "./pages/admin/EmployeeManagement";
 import AdminProfile from "./pages/admin/Profile";
 import RosterUpload from "./pages/admin/RosterUpload";
+import ManualShiftAssignment from "./pages/admin/ManualShiftAssignment";
 
 /* EMPLOYEE PAGES */
 
@@ -101,6 +102,11 @@ function App() {
           <Route
             path="/roster-upload"
             element={<RosterUpload />}
+            
+          />
+          <Route
+            path="/manual-shift-assignment"
+            element={<ManualShiftAssignment />}
           />
         </Route>
 

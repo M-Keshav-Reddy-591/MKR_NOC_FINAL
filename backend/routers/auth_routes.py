@@ -59,37 +59,56 @@ def register_user(
         "message": "User registered successfully"
     }
 
-@router.post("/login")
 
-def login_user(
-    login_data: schemas.LoginSchema,
+from models import Employee
+
+
+
+@router.post("/login")
+def login(
+    data: dict,
     db: Session = Depends(get_db)
 ):
 
-    user = db.query(
-        models.Employee
-    ).filter(
-        models.Employee.emp_id == login_data.emp_id
+    emp_id = data.get("emp_id")
+    password = data.get("password")
+    role = data.get("role")
+
+    user = db.query(Employee).filter(
+        Employee.emp_id == emp_id
     ).first()
+
+    # USER NOT FOUND
 
     if not user:
 
         raise HTTPException(
-            status_code=401,
-            detail="Invalid Employee ID"
+            status_code=404,
+            detail="Employee not found"
         )
 
-    password_valid = verify_password(
-        login_data.password,
-        user.password
-    )
+    # PASSWORD VERIFY
 
-    if not password_valid:
+    if not verify_password(
+        password,
+        user.password
+    ):
 
         raise HTTPException(
             status_code=401,
-            detail="Invalid Password"
+            detail="Invalid password"
         )
+
+    # ROLE VERIFY
+
+    if user.role != role:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid role selected"
+        )
+
+    # JWT TOKEN
 
     access_token = create_access_token(
         data={
@@ -100,8 +119,43 @@ def login_user(
 
     return {
 
+        "message": "Login successful",
+
         "access_token": access_token,
-        "token_type": "bearer",
+
         "role": user.role,
-        "emp_name": user.emp_name
+
+        "emp_id": user.emp_id,
+
+        "emp_name": user.emp_name,
+
+        "employee_id": user.id
     }
+
+@router.get("/reset-test-password")
+def reset_test_password(
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(Employee).filter(
+        Employee.emp_id == "EMP001"
+    ).first()
+
+    user.password = hash_password("admin123")
+
+    db.commit()
+
+    return {
+        "message": "Password reset success"
+    }
+
+
+
+
+
+
+
+
+
+
+

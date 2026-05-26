@@ -17,12 +17,27 @@ export default function AdminSidebar() {
     },
 
     {
-      title: "Attendance Reports",
+      title: "Manual Shift Assignment",
+      path: "/manual-shift-assignment"
+    },
+
+    {
+      title: "CSV Shift Upload",
+      path: "/csv-shift-upload"
+    },
+
+    {
+      title: "Reports",
       path: "/reports"
     },
 
     {
-      title: "Absent Alerts",
+      title: "Analytics",
+      path: "/analytics"
+    },
+
+    {
+      title: "Alerts",
       path: "/alerts"
     },
 
@@ -37,33 +52,18 @@ export default function AdminSidebar() {
     },
 
     {
-      title: "Roster Upload",
-      path: "/roster-upload"
-    },
-
-    {
       title: "Employee Management",
       path: "/employees"
     },
 
     {
-      title: "Monthly Analytics",
-      path: "/monthly-analytics"
+      title: "Holiday Work Log",
+      path: "/holiday-work-log"
     },
 
     {
-      title: "System Analytics",
-      path: "/analytics"
-    },
-
-    {
-      title: "Admin Profile",
+      title: "Profile",
       path: "/admin-profile"
-    },
-
-    {
-      title: "Change Password",
-      path: "/change-password"
     }
 
   ];
@@ -74,23 +74,23 @@ export default function AdminSidebar() {
 
       <div>
 
-        <div className="mb-12">
+        <div className="mb-10">
 
-          <div className="bg-blue-600 w-16 h-16 rounded-3xl flex items-center justify-center text-3xl font-black shadow-xl mb-4">
-            N
-          </div>
+          <h1 className="text-4xl font-black tracking-wide leading-tight">
 
-          <h1 className="text-4xl font-black tracking-wide">
             ADMIN PANEL
+
           </h1>
 
           <p className="text-gray-400 mt-3 text-sm">
-            NOC Attendance Management System
+
+            NOC Attendance Management
+
           </p>
 
         </div>
 
-        <nav className="space-y-3">
+        <nav className="space-y-4">
 
           {
             menu.map((item, index) => (
@@ -98,10 +98,10 @@ export default function AdminSidebar() {
               <Link
                 key={index}
                 to={item.path}
-                className={`block p-4 rounded-2xl transition-all duration-300 font-semibold text-[15px] shadow-lg ${
+                className={`block p-4 rounded-2xl transition-all duration-300 font-semibold shadow-lg ${
                   location.pathname === item.path
-                    ? "bg-blue-600 scale-[1.02]"
-                    : "bg-gray-800 hover:bg-blue-500 hover:translate-x-1"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 scale-105"
+                    : "bg-gray-800 hover:bg-blue-600 hover:scale-105"
                 }`}
               >
 
@@ -115,35 +115,19 @@ export default function AdminSidebar() {
 
       </div>
 
-      <div className="mt-10">
+      <button
+        onClick={() => {
 
-        <div className="bg-gray-800 p-4 rounded-2xl mb-5 shadow-xl">
+          localStorage.clear();
 
-          <h2 className="font-bold text-lg">
-            Admin Access
-          </h2>
+          window.location.href = "/";
+        }}
+        className="w-full bg-red-600 py-4 rounded-2xl font-bold hover:bg-red-700 transition shadow-xl"
+      >
 
-          <p className="text-gray-400 text-sm mt-1">
-            Full system management enabled
-          </p>
+        Logout
 
-        </div>
-
-        <button
-          onClick={() => {
-
-            localStorage.clear();
-
-            window.location.href = "/";
-          }}
-          className="w-full bg-red-600 py-4 rounded-2xl font-bold hover:bg-red-700 transition shadow-xl"
-        >
-
-          Logout
-
-        </button>
-
-      </div>
+      </button>
 
     </div>
   );

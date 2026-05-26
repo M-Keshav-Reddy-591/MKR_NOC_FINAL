@@ -1,13 +1,16 @@
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from database import Base
-from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Date
 from sqlalchemy import Time
+from sqlalchemy import DateTime
+from sqlalchemy import Text
 from sqlalchemy import ForeignKey
+from datetime import datetime
+from database import get_db
+from database import Base
 
 # =========================================
 # EMPLOYEE TABLE
@@ -145,7 +148,31 @@ class ShiftSwap(Base):
 
     status = Column(String(50), default="Pending")
 
+class HolidayWorkLog(Base):
 
+    __tablename__ = "holiday_work_log"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    employee_id = Column(
+        Integer,
+        ForeignKey("employees.id")
+    )
+
+    shift_date = Column(Date)
+
+    shift_name = Column(String(50))
+
+    note = Column(Text)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
 
 
 

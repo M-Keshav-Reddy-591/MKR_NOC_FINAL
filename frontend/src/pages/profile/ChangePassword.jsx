@@ -7,26 +7,58 @@ export default function ChangePassword() {
 
   const empId = localStorage.getItem("emp_id");
 
-  const handleChange = async () => {
+  // const handleChange = async () => {
 
-    try {
+  //   try {
 
-      await axios.put(
-        `http://127.0.0.1:8000/api/v1/employees/change-password/${empId}`,
-        {
-          password: password
-        }
-      );
+  //     await axios.put(
+  //       `http://127.0.0.1:8000/api/v1/employees/change-password/${empId}`,
+  //       {
+  //         password: password
+  //       }
+  //     );
 
-      alert("Password Updated Successfully");
+  //     alert("Password Updated Successfully");
 
-      setPassword("");
+  //     setPassword("");
 
-    } catch (err) {
+  //   } catch (err) {
 
-      alert("Password Update Failed");
+  //     alert("Password Update Failed");
+  //   }
+  // };
+  const handlePasswordChange = async () => {
+
+  try {
+
+    const response = await axios.post(
+      "http://127.0.0.1:8000/api/v1/auth/change-password",
+      {
+        employee_id: localStorage.getItem("employee_id"),
+        old_password: oldPassword,
+        new_password: newPassword
+      }
+    );
+
+    alert(response.data.message);
+
+    setOldPassword("");
+    setNewPassword("");
+
+  } catch (error) {
+
+    console.log(error);
+
+    if (error.response) {
+
+      alert(error.response.data.detail);
+
+    } else {
+
+      alert("Server Error");
     }
-  };
+  }
+};
 
   return (
 
