@@ -137,7 +137,7 @@ async def upload_shift_csv(
 #     }
 
 
-from models import ManualShiftAssignment, HolidayWorkLog
+#from models import ManualShiftAssignment, HolidayWorkLog
 
 router = APIRouter(prefix="/api/v1/shifts", tags=["Shift Assignment"])
 

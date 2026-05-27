@@ -5,80 +5,43 @@ from database import engine
 from database import Base
 
 import models
-from routers import auth_routes
-from routers import employee_routes
-from routers import attendance_routes
-from routers import shift_routes
-from routers import shift_assignment_routes
-from routers import dashboard_routes
-from routers import leave_routes
-from routers import report_routes
-from routers import swap_routes
-from routers import live_attendance_routes
-from routers import export_routes
-from routers import csv_upload_routes
-from routers import shift_upload_routes
-from routers import manual_shift_routes
-from routers import roster_upload_routes
 
-
-# ==========================================
-# CREATE DATABASE TABLES
-# ==========================================
-
-Base.metadata.create_all(bind=engine)
-
-
-# ==========================================
-# FASTAPI APP
-# ==========================================
-
-app = FastAPI(
-    title="NOC Attendance Management System"
+from routers import (
+    auth_routes,
+    dashboard_routes
 )
 
+Base.metadata.create_all(
+    bind=engine
+)
 
-# ==========================================
-# CORS
-# ==========================================
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
+
     allow_origins=["*"],
+
     allow_credentials=True,
+
     allow_methods=["*"],
-    allow_headers=["*"],
+
+    allow_headers=["*"]
+)
+
+app.include_router(
+    auth_routes.router
+)
+
+app.include_router(
+    dashboard_routes.router
 )
 
 
-# ==========================================
-# ROUTES
-# ==========================================
-
-app.include_router(auth_routes.router)
-app.include_router(attendance_routes.router)
-app.include_router(employee_routes.router)
-app.include_router(shift_routes.router)
-app.include_router(shift_assignment_routes.router)
-app.include_router(dashboard_routes.router)
-app.include_router(leave_routes.router)
-app.include_router(report_routes.router)
-app.include_router(swap_routes.router)
-app.include_router(live_attendance_routes.router)
-app.include_router(export_routes.router)
-app.include_router(csv_upload_routes.router)
-app.include_router(shift_upload_routes.router)
-app.include_router(manual_shift_routes.router)
-app.include_router(roster_upload_routes.router)
-
-
-# ==========================================
-# ROOT
-# ==========================================
-
 @app.get("/")
-def home():
+def root():
 
     return {
-        "message": "NOC Attendance Backend Running"
+        "message":
+        "NOC Attendance Backend Running"
     }

@@ -1,69 +1,82 @@
-from fastapi import APIRouter
-from database import SessionLocal
+from fastapi import (
+    APIRouter,
+    Depends
+)
+
+from sqlalchemy.orm import Session
+
+from database import get_db
+
 import models
+
+from datetime import date
 
 router = APIRouter(
     prefix="/api/v1/dashboard",
     tags=["Dashboard"]
 )
 
-@router.get("/stats")
-def get_dashboard_stats():
 
-    db = SessionLocal()
+@router.get("/stats")
+def get_dashboard_stats(
+    db: Session = Depends(get_db)
+):
+
+    today = date.today()
 
     total_employees = db.query(
         models.Employee
     ).count()
 
-    total_attendance = db.query(
+    present_today = db.query(
         models.Attendance
+    ).filter(
+        models.Attendance.attendance_date
+        == today
     ).count()
 
-    total_shifts = db.query(
-        models.ShiftAssignment
-    ).count()
+    absent_today = (
+        total_employees - present_today
+    )
 
     return {
 
-        "total_employees": total_employees,
-        "total_attendance": total_attendance,
-        "total_shifts": total_shifts
+        "total_employees":
+        total_employees,
 
+        "present_today":
+        present_today,
+
+        "absent_today":
+        absent_today
     }
 
+
 @router.get("/absent-employees")
-def get_absent_employees():
+def get_absent_employees(
+    db: Session = Depends(get_db)
+):
 
-    db = SessionLocal()
+    today = date.today()
 
-    employees = db.query(
+    attendance_ids = db.query(
+        models.Attendance.employee_id
+    ).filter(
+        models.Attendance.attendance_date
+        == today
+    ).all()
+
+    attendance_ids = [
+        item[0]
+        for item in attendance_ids
+    ]
+
+    absent_employees = db.query(
         models.Employee
-    ).all()
-
-    attendance_records = db.query(
-        models.Attendance
-    ).all()
-
-    present_ids = []
-
-    for row in attendance_records:
-
-        present_ids.append(
-            row.employee_id
+    ).filter(
+        ~models.Employee.id.in_(
+            attendance_ids
         )
+    ).all()
 
-    absent = []
-
-    for emp in employees:
-
-        if emp.id not in present_ids:
-
-            absent.append({
-
-                "emp_id": emp.emp_id,
-                "emp_name": emp.emp_name
-
-            })
-
-    return absent
+    return absent_employees
