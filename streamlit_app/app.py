@@ -1,65 +1,63 @@
 import streamlit as st
-import requests
 
 from components.sidebar import (
     admin_sidebar,
     employee_sidebar
 )
 
-from views.admin_dashboard import show_admin_dashboard
-from views.employees import show_employees
-from views.shifts import show_shifts
-from views.manual_attendance import show_manual_attendance
-from views.reports import show_reports
-from views.change_password import show_change_password
-from views.employee_dashboard import show_employee_dashboard
-from views.employee_attendance import show_employee_attendance
+from views.admin_dashboard import (
+    show_admin_dashboard
+)
 
+from views.employees import (
+    show_employees
+)
 
-# ==========================================
-# SESSION INIT
-# ==========================================
+from views.shifts import (
+    show_shifts
+)
+
+from views.manual_attendance import (
+    show_manual_attendance
+)
+
+from views.reports import (
+    show_reports
+)
+
+from views.change_password import (
+    show_change_password
+)
+
+from views.employee_dashboard import (
+    show_employee_dashboard
+)
+
+from views.employee_attendance import (
+    show_employee_attendance
+)
+
+st.set_page_config(
+    page_title="NOC Attendance",
+    layout="wide"
+)
+
+# SESSION DEFAULTS
 
 if "logged_in" not in st.session_state:
-
     st.session_state.logged_in = False
 
 if "role" not in st.session_state:
-
     st.session_state.role = ""
 
-if "emp_name" not in st.session_state:
+if "page" not in st.session_state:
+    st.session_state.page = "login"
 
-    st.session_state.emp_name = ""
-
-if "emp_id" not in st.session_state:
-
-    st.session_state.emp_id = ""
-
-
-# ==========================================
-# LOGIN PAGE
-# ==========================================
+# LOGIN SCREEN
 
 if not st.session_state.logged_in:
 
-    st.set_page_config(
-        page_title="NOC Attendance",
-        layout="wide"
-    )
-
     st.title("NOC Attendance Login")
-
-    role = st.selectbox(
-
-        "Role",
-
-        [
-            "admin",
-            "employee"
-        ]
-
-    )
 
     emp_id = st.text_input(
         "Employee ID"
@@ -70,92 +68,91 @@ if not st.session_state.logged_in:
         type="password"
     )
 
-    if st.button("Login"):
+    role = st.selectbox(
+        "Role",
+        [
+            "admin",
+            "employee"
+        ]
+    )
+
+    if st.button(
+        "Login",
+        width="stretch"
+    ):
+
+        import requests
 
         response = requests.post(
-
             "http://127.0.0.1:8000/api/v1/auth/login",
-
             json={
-
                 "emp_id": emp_id,
                 "password": password,
                 "role": role
-
             }
-
         )
-
-        data = response.json()
 
         if response.status_code == 200:
 
+            data = response.json()
+
+            employee = data["employee"]
+
             st.session_state.logged_in = True
 
-            st.session_state.role = data["employee"]["role"]
+            st.session_state.role = employee["role"]
 
-            st.session_state.emp_name = data["employee"]["name"]
+            st.session_state.emp_id = employee["emp_id"]
 
-            st.session_state.emp_id = data["employee"]["emp_id"]
+            st.session_state.emp_name = employee["name"]
 
             st.rerun()
 
         else:
 
             st.error(
-                data["detail"]
+                response.json()["detail"]
             )
 
-
-# ==========================================
 # ADMIN PANEL
-# ==========================================
 
 elif st.session_state.role == "admin":
 
-    selected = admin_sidebar()
+    admin_sidebar()
 
-    if selected == "Dashboard":
+    page = st.session_state.page
 
+    if page == "dashboard":
         show_admin_dashboard()
 
-    elif selected == "Employees":
-
+    elif page == "employees":
         show_employees()
 
-    elif selected == "Shifts":
-
+    elif page == "shifts":
         show_shifts()
 
-    elif selected == "Manual Attendance":
-
+    elif page == "manual_attendance":
         show_manual_attendance()
 
-    elif selected == "Reports":
-
+    elif page == "reports":
         show_reports()
 
-    elif selected == "Change Password":
-
+    elif page == "change_password":
         show_change_password()
 
-
-# ==========================================
 # EMPLOYEE PANEL
-# ==========================================
 
-else:
+elif st.session_state.role == "employee":
 
-    selected = employee_sidebar()
+    employee_sidebar()
 
-    if selected == "Dashboard":
+    page = st.session_state.page
 
+    if page == "dashboard":
         show_employee_dashboard()
 
-    elif selected == "Attendance":
-
+    elif page == "attendance":
         show_employee_attendance()
 
-    elif selected == "Change Password":
-
+    elif page == "change_password":
         show_change_password()

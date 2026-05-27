@@ -1,82 +1,47 @@
 import streamlit as st
 
 
-# ==========================================
-# ADMIN SIDEBAR
-# ==========================================
-
 def admin_sidebar():
 
     with st.sidebar:
 
-        st.markdown("# 🛡️ ADMIN PANEL")
-
-        st.caption("NOC Attendance Management")
-
-        st.divider()
-
-        selected = st.radio(
-
-            "Navigation",
-
-            [
-
-                "Dashboard",
-                "Employees",
-                "Shifts",
-                "Manual Attendance",
-                "Reports",
-                "Change Password"
-
-            ]
-
-        )
-
-        st.divider()
+        st.title("ADMIN PANEL")
 
         if st.button(
-            "🚪 Logout",
+            "Dashboard",
             width="stretch"
         ):
+            st.session_state.page = "dashboard"
 
-            st.session_state.clear()
+        if st.button(
+            "Employees",
+            width="stretch"
+        ):
+            st.session_state.page = "employees"
 
-            st.rerun()
+        if st.button(
+            "Shifts",
+            width="stretch"
+        ):
+            st.session_state.page = "shifts"
 
-        return selected
+        if st.button(
+            "Manual Attendance",
+            width="stretch"
+        ):
+            st.session_state.page = "manual_attendance"
 
+        if st.button(
+            "Reports",
+            width="stretch"
+        ):
+            st.session_state.page = "reports"
 
-# ==========================================
-# EMPLOYEE SIDEBAR
-# ==========================================
-
-def employee_sidebar():
-
-    with st.sidebar:
-
-        st.title("NOC Attendance")
-
-        st.write(
-
-            f"Welcome {st.session_state.get('emp_name', '')}"
-
-        )
-
-        st.divider()
-
-        selected = st.radio(
-
-            "Navigation",
-
-            [
-
-                "Dashboard",
-                "Attendance",
-                "Change Password"
-
-            ]
-
-        )
+        if st.button(
+            "Change Password",
+            width="stretch"
+        ):
+            st.session_state.page = "change_password"
 
         st.divider()
 
@@ -89,4 +54,42 @@ def employee_sidebar():
 
             st.rerun()
 
-        return selected
+
+def employee_sidebar():
+
+    with st.sidebar:
+
+        st.title("EMPLOYEE")
+
+        st.write(
+            f"Welcome {st.session_state.get('emp_name')}"
+        )
+
+        if st.button(
+            "Dashboard",
+            width="stretch"
+        ):
+            st.session_state.page = "dashboard"
+
+        if st.button(
+            "Attendance",
+            width="stretch"
+        ):
+            st.session_state.page = "attendance"
+
+        if st.button(
+            "Change Password",
+            width="stretch"
+        ):
+            st.session_state.page = "change_password"
+
+        st.divider()
+
+        if st.button(
+            "Logout",
+            width="stretch"
+        ):
+
+            st.session_state.clear()
+
+            st.rerun()

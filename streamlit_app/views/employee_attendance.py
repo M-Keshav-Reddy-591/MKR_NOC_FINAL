@@ -4,77 +4,75 @@ import pandas as pd
 
 API = "http://127.0.0.1:8000"
 
-st.title("Attendance")
 
-employee_id = st.session_state.get(
-    "employee_id"
-)
+def show_employee_attendance():
 
-# ===================================
-# MARK ATTENDANCE
-# ===================================
+    st.title("Attendance")
 
-if st.button(
-    "Mark Attendance",
-    width="stretch"
-):
+    emp_id = st.session_state.get(
+        "emp_id"
+    )
 
-    response = requests.post(
+    # MARK ATTENDANCE
 
-        f"{API}/api/v1/attendance/mark",
+    if st.button(
+        "Mark Attendance",
+        width="stretch"
+    ):
 
-        json={
-            "employee_id": employee_id
-        }
+        response = requests.post(
+
+            f"{API}/api/v1/attendance/mark",
+
+            json={
+
+                "employee_id": emp_id
+
+            }
+
+        )
+
+        if response.status_code == 200:
+
+            st.success(
+                response.json()["message"]
+            )
+
+        else:
+
+            st.error(
+                response.text
+            )
+
+    st.divider()
+
+    # FETCH EMPLOYEE ATTENDANCE
+
+    response = requests.get(
+        f"{API}/api/v1/attendance/{emp_id}"
     )
 
     if response.status_code == 200:
 
-        st.success(
-            response.json()["message"]
-        )
+        data = response.json()
+
+        if len(data) > 0:
+
+            df = pd.DataFrame(data)
+
+            st.dataframe(
+                df,
+                width="stretch"
+            )
+
+        else:
+
+            st.info(
+                "No attendance records found"
+            )
 
     else:
 
         st.error(
-            response.json()["detail"]
+            "Unable to fetch attendance"
         )
-
-st.divider()
-
-# ===================================
-# ATTENDANCE HISTORY
-# ===================================
-
-response = requests.get(
-    f"{API}/api/v1/attendance/employee/{employee_id}"
-)
-
-if response.status_code == 200:
-
-    data = response.json()
-
-    if len(data) > 0:
-
-        df = pd.DataFrame(data)
-
-        st.subheader(
-            "Attendance History"
-        )
-
-        st.dataframe(
-            df,
-            width="stretch"
-        )
-
-    else:
-
-        st.info(
-            "No attendance records found"
-        )
-
-else:
-
-    st.error(
-        "Unable to fetch attendance"
-    )

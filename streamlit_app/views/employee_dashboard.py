@@ -4,57 +4,58 @@ import pandas as pd
 
 API = "http://127.0.0.1:8000"
 
-employee_name = st.session_state.get(
-    "emp_name"
-)
 
-employee_id = st.session_state.get(
-    "employee_id"
-)
+def show_employee_dashboard():
 
-st.title(
-    f"Welcome {employee_name}"
-)
-
-st.subheader(
-    "Upcoming Shifts"
-)
-
-response = requests.get(
-    f"{API}/api/v1/shifts/"
-)
-
-if response.status_code == 200:
-
-    shifts = response.json()
-
-    employee_shifts = []
-
-    for shift in shifts:
-
-        if shift["employee_id"] == employee_id:
-
-            employee_shifts.append(shift)
-
-    if len(employee_shifts) > 0:
-
-        df = pd.DataFrame(
-            employee_shifts
-        )
-
-        st.dataframe(
-            df,
-            width="stretch"
-        )
-
-    else:
-
-        st.info(
-            "No upcoming shifts"
-        )
-
-else:
-
-    st.error(
-        "Unable to fetch shifts"
+    emp_name = st.session_state.get(
+        "emp_name",
+        "Employee"
     )
+
+    emp_id = st.session_state.get(
+        "emp_id",
+        ""
+    )
+
+    st.title(
+        f"Welcome {emp_name}"
+    )
+
+    st.subheader(
+        "Upcoming Shifts"
+    )
+
+    try:
+
+        response = requests.get(
+            f"{API}/api/v1/shifts/{emp_id}"
+        )
+
+        if response.status_code == 200:
+
+            data = response.json()
+
+            if len(data) > 0:
+
+                df = pd.DataFrame(data)
+
+                st.dataframe(
+                    df,
+                    width="stretch"
+                )
+
+            else:
+
+                st.info(
+                    "No upcoming shifts"
+                )
+
+        else:
+
+            st.warning(
+                "Unable to fetch shifts"
+            )
+
+    except Exception as e:
+
+        st.error(str(e))
