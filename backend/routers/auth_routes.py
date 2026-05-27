@@ -23,6 +23,22 @@ router = APIRouter(
     prefix="/api/v1/auth",
     tags=["Authentication"]
 )
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+import models
+from database import get_db
+
+from utils.security import verify_password
+
+router = APIRouter(
+    prefix="/api/v1/auth",
+    tags=["Authentication"]
+)
+
+# ==========================================
+# LOGIN
+# ==========================================
 
 @router.post("/login")
 def login(
@@ -32,12 +48,13 @@ def login(
 
     emp_id = data.get("emp_id")
     password = data.get("password")
+    role = data.get("role")
 
-    user = db.query(models.Employee).filter(
+    user = db.query(
+        models.Employee
+    ).filter(
         models.Employee.emp_id == emp_id
     ).first()
-
-    # USER NOT FOUND
 
     if not user:
 
@@ -46,7 +63,7 @@ def login(
             detail="Employee not found"
         )
 
-    # PASSWORD VERIFY
+    # VERIFY PASSWORD
 
     if not verify_password(
         password,
@@ -58,19 +75,24 @@ def login(
             detail="Invalid password"
         )
 
-    # SUCCESS
+    # VERIFY ROLE
+
+    if user.role.lower() != role.lower():
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid role"
+        )
 
     return {
 
         "message": "Login successful",
 
-        "employee": {
+        "role": user.role,
 
-            "id": user.id,
-            "emp_id": user.emp_id,
-            "name": user.emp_name,
-            "role": user.role
-        }
+        "emp_id": user.emp_id,
+
+        "emp_name": user.emp_name
     }
 
 @router.post("/register")

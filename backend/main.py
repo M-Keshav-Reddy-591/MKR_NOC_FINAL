@@ -11,7 +11,8 @@ import models
 
 from routers import (
     auth_routes,
-    dashboard_routes
+    dashboard_routes,
+    shift_routes,
 )
 
 Base.metadata.create_all(
@@ -35,7 +36,9 @@ app.add_middleware(
 app.include_router(
     auth_routes.router
 )
-
+app.include_router(
+    shift_routes.router
+)
 app.include_router(
     dashboard_routes.router
 )

@@ -8,7 +8,8 @@ from sqlalchemy import (
     DateTime,
     Time,
     ForeignKey,
-    Text
+    Text,
+    Boolean
 )
 
 from database import Base
@@ -50,35 +51,19 @@ class Employee(Base):
         String(50)
     )
 
-
 class Attendance(Base):
 
     __tablename__ = "attendance"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
 
-    employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
+    employee_id = Column(String(50))
 
     attendance_date = Column(Date)
 
-    check_in = Column(
-        DateTime,
-        default=datetime.utcnow
-    )
+    status = Column(String(50))
 
-    check_out = Column(DateTime)
-
-    status = Column(
-        String(50)
-    )
-
+    check_in = Column(DateTime, default=datetime.utcnow)
 
 class ShiftAssignment(Base):
 
@@ -105,4 +90,7 @@ class ShiftAssignment(Base):
 
     shift_date = Column(Date)
 
-    holiday_note = Column(Text)
+    is_holiday = Column(Boolean, default=False)
+
+    holiday_note = Column(String(500))
+
