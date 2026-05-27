@@ -6,14 +6,14 @@ from components.sidebar import (
     employee_sidebar
 )
 
-from views.admin_dashboard import admin_dashboard
-from views.employees import employees
-from views.shifts import shifts
-from views.manual_attendance import manual_attendance
-from views.reports import reports
-from views.change_password import change_password
-from views.employee_dashboard import employee_dashboard
-from views.employee_attendance import employee_attendance
+from views.admin_dashboard import show_admin_dashboard
+from views.employees import show_employees
+from views.shifts import show_shifts
+from views.manual_attendance import show_manual_attendance
+from views.reports import show_reports
+from views.change_password import show_change_password
+from views.employee_dashboard import show_employee_dashboard
+from views.employee_attendance import show_employee_attendance
 
 
 # ==========================================
