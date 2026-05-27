@@ -1,123 +1,55 @@
 import streamlit as st
 
-from utils.api import login_user
-from utils.auth import save_login
-from utils.sidebar import (
-    admin_sidebar,
-    employee_sidebar
-)
+from utils.styles import load_css
+from utils.sidebar import admin_sidebar
+
+from views.admin_dashboard import show_admin_dashboard
+from views.employees import show_employees
+from views.attendance import show_attendance
+from views.shifts import show_shifts
+from views.analytics import show_analytics
+from views.reports import show_reports
+from views.csv_upload import show_csv_upload
+from views.change_password import show_change_password
 
 st.set_page_config(
-    page_title="NOC Attendance System",
-    layout="wide"
+    page_title="NOC Attendance",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# LOGIN CHECK
+load_css()
 
-if "token" not in st.session_state:
+menu = admin_sidebar()
 
-    st.title("NOC ATTENDANCE SYSTEM")
+if menu == "Dashboard":
 
-    role = st.selectbox(
-        "Select Role",
-        ["admin", "employee"]
-    )
+    show_admin_dashboard()
 
-    emp_id = st.text_input(
-        "Employee ID"
-    )
+elif menu == "Employees":
 
-    password = st.text_input(
-        "Password",
-        type="password"
-    )
+    show_employees()
 
-    if st.button("LOGIN"):
+elif menu == "Attendance":
 
-        response = login_user(
-            emp_id,
-            password,
-            role
-        )
+    show_attendance()
 
-        if response.status_code == 200:
+elif menu == "Shift Management":
 
-            data = response.json()
+    show_shifts()
 
-            save_login(data)
+elif menu == "Analytics":
 
-            st.success("Login Successful")
+    show_analytics()
 
-            st.rerun()
+elif menu == "CSV Upload":
 
-        else:
+    show_csv_upload()
 
-            st.error(
-                response.json()["detail"]
-            )
+elif menu == "Reports":
 
-else:
+    show_reports()
 
-    role = st.session_state["role"]
+elif menu == "Change Password":
 
-    st.title(
-        f"Welcome {st.session_state['emp_name']}"
-    )
-
-    if role == "admin":
-
-        selected = admin_sidebar()
-
-        if selected == "Dashboard":
-            st.switch_page(
-                "pages/admin_dashboard.py"
-            )
-
-        elif selected == "Employees":
-            st.switch_page(
-                "pages/attendance.py"
-            )
-
-        elif selected == "Shift Management":
-            st.switch_page(
-                "pages/shift_management.py"
-            )
-
-        elif selected == "CSV Upload":
-            st.switch_page(
-                "pages/csv_upload.py"
-            )
-
-        elif selected == "Analytics":
-            st.switch_page(
-                "pages/analytics.py"
-            )
-
-        elif selected == "Reports":
-            st.switch_page(
-                "pages/reports.py"
-            )
-
-        elif selected == "Change Password":
-            st.switch_page(
-                "pages/change_password.py"
-            )
-
-    else:
-
-        selected = employee_sidebar()
-
-        if selected == "Dashboard":
-            st.switch_page(
-                "pages/employee_dashboard.py"
-            )
-
-        elif selected == "Mark Attendance":
-            st.switch_page(
-                "pages/attendance.py"
-            )
-
-        elif selected == "Change Password":
-            st.switch_page(
-                "pages/change_password.py"
-            )
+    show_change_password()
