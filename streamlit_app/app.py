@@ -1,7 +1,5 @@
 import streamlit as st
-
-from utils.styles import load_css
-from utils.sidebar import admin_sidebar
+import requests
 
 from views.admin_dashboard import show_admin_dashboard
 from views.employees import show_employees
@@ -12,44 +10,150 @@ from views.reports import show_reports
 from views.csv_upload import show_csv_upload
 from views.change_password import show_change_password
 
+API = "http://127.0.0.1:8000/api/v1"
+
 st.set_page_config(
     page_title="NOC Attendance",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
-load_css()
+# ---------------- SESSION ----------------
 
-menu = admin_sidebar()
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-if menu == "Dashboard":
+if "role" not in st.session_state:
+    st.session_state.role = ""
 
-    show_admin_dashboard()
+if "employee" not in st.session_state:
+    st.session_state.employee = {}
 
-elif menu == "Employees":
+# ---------------- LOGIN SCREEN ----------------
 
-    show_employees()
+if not st.session_state.logged_in:
 
-elif menu == "Attendance":
+    st.title("NOC Attendance Login")
 
-    show_attendance()
+    emp_id = st.text_input("Employee ID")
 
-elif menu == "Shift Management":
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
 
-    show_shifts()
+    if st.button("Login"):
 
-elif menu == "Analytics":
+        payload = {
+            "emp_id": emp_id,
+            "password": password
+        }
 
-    show_analytics()
+        try:
 
-elif menu == "CSV Upload":
+            response = requests.post(
+                f"{API}/auth/login",
+                json=payload
+            )
 
-    show_csv_upload()
+            if response.status_code == 200:
 
-elif menu == "Reports":
+                data = response.json()
 
-    show_reports()
+                st.session_state.logged_in = True
+                st.session_state.role = data["employee"]["role"]
+                st.session_state.employee = data["employee"]
 
-elif menu == "Change Password":
+                st.rerun()
 
-    show_change_password()
+            else:
+
+                st.error(
+                    response.json()["detail"]
+                )
+
+        except Exception as e:
+
+            st.error(str(e))
+
+# ---------------- AFTER LOGIN ----------------
+
+else:
+
+    st.sidebar.title("NOC Attendance")
+
+    st.sidebar.write(
+        f"Welcome {st.session_state.employee['name']}"
+    )
+
+    role = st.session_state.role
+
+    # ADMIN MENU
+
+    if role == "admin":
+
+        menu = st.sidebar.radio(
+
+            "Navigation",
+
+            [
+                "Dashboard",
+                "Employees",
+                "Attendance",
+                "Shifts",
+                "Analytics",
+                "Reports",
+                "CSV Upload",
+                "Change Password"
+            ]
+        )
+
+    # EMPLOYEE MENU
+
+    else:
+
+        menu = st.sidebar.radio(
+
+            "Navigation",
+
+            [
+                "Attendance",
+                "Shifts",
+                "Change Password"
+            ]
+        )
+
+    # LOGOUT
+
+    if st.sidebar.button("Logout"):
+
+        st.session_state.logged_in = False
+        st.session_state.role = ""
+        st.session_state.employee = {}
+
+        st.rerun()
+
+    # PAGE RENDERING
+
+    if menu == "Dashboard":
+        show_admin_dashboard()
+
+    elif menu == "Employees":
+        show_employees()
+
+    elif menu == "Attendance":
+        show_attendance()
+
+    elif menu == "Shifts":
+        show_shifts()
+
+    elif menu == "Analytics":
+        show_analytics()
+
+    elif menu == "Reports":
+        show_reports()
+
+    elif menu == "CSV Upload":
+        show_csv_upload()
+
+    elif menu == "Change Password":
+        show_change_password()

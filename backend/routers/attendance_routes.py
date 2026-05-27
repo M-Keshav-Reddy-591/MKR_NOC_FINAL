@@ -113,3 +113,23 @@ def get_employee_attendance(emp_id: str):
         return []
     attendance = db.query(models.Attendance).filter(models.Attendance.employee_id == employee.id).all()
     return attendance
+@router.post("/mark")
+def mark_attendance(
+    data: dict,
+    db: Session = Depends(get_db)
+):
+
+    attendance = models.Attendance(
+
+        employee_id=data["employee_id"]
+    )
+
+    db.add(attendance)
+
+    db.commit()
+
+    return {
+        "message": "Attendance Marked"
+    }
+
+

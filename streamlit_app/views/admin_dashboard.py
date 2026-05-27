@@ -1,32 +1,44 @@
 import streamlit as st
+import requests
 
+API = "http://127.0.0.1:8000/api/v1"
 
 def show_admin_dashboard():
 
-    st.title("ADMIN DASHBOARD")
+    st.title("Admin Dashboard")
 
-    col1, col2, col3 = st.columns(3)
+    try:
 
-    with col1:
-        st.metric(
-            "Total Employees",
-            58
+        response = requests.get(
+            f"{API}/dashboard/stats"
         )
 
-    with col2:
-        st.metric(
-            "Present Today",
-            44
+        data = response.json()
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        col1.metric(
+            "Employees",
+            data.get("total_employees", 0)
         )
 
-    with col3:
-        st.metric(
-            "Absent Today",
-            14
+        col2.metric(
+            "Present",
+            data.get("present_today", 0)
         )
 
-    st.divider()
+        col3.metric(
+            "Absent",
+            data.get("absent_today", 0)
+        )
 
-    st.subheader("NOC Attendance Management System")
+        col4.metric(
+            "Shifts",
+            data.get("total_shifts", 0)
+        )
 
-    st.success("System Running Successfully")
+        st.success("System Running Successfully")
+
+    except Exception as e:
+
+        st.error(str(e))

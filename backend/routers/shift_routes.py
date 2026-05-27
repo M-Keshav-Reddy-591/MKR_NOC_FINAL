@@ -162,3 +162,32 @@ def manual_assign_shift(data: dict, db: Session = Depends(get_db)):
         db.add(holiday)
         db.commit()
     return {"message": "Shift assigned successfully"}
+@router.post("/upload-csv")
+def upload_csv(
+    data: list,
+    db: Session = Depends(get_db)
+):
+
+    for item in data:
+
+        shift = models.ShiftAssignment(
+
+            employee_id=item["employee_id"],
+            shift_name=item["shift_name"],
+            shift_date=item["shift_date"],
+            start_time=item["start_time"],
+            end_time=item["end_time"]
+        )
+
+        db.add(shift)
+
+    db.commit()
+
+    return {
+        "message": "CSV Uploaded"
+    }
+
+
+
+
+

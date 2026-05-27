@@ -1,17 +1,30 @@
 import streamlit as st
-
+import pandas as pd
+import numpy as np
 
 def show_analytics():
 
-    st.title("ANALYTICS")
+    st.title("Analytics")
 
-    st.line_chart({
+    data = pd.DataFrame({
+
+        "Month": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May"
+        ],
 
         "Attendance": [
+            90,
             85,
             88,
             91,
-            87,
-            93
+            95
         ]
     })
+
+    st.line_chart(
+        data.set_index("Month")
+    )

@@ -1,20 +1,28 @@
 import streamlit as st
+import requests
+import pandas as pd
 
+API = "http://127.0.0.1:8000/api/v1"
 
 def show_shifts():
 
-    st.title("SHIFT MANAGEMENT")
+    st.title("Shift Management")
 
-    st.selectbox(
+    try:
 
-        "Select Shift",
+        response = requests.get(
+            f"{API}/shifts"
+        )
 
-        [
-            "Morning",
-            "Evening",
-            "Night",
-            "Holiday"
-        ]
-    )
+        data = response.json()
 
-    st.button("Assign Shift")
+        df = pd.DataFrame(data)
+
+        st.dataframe(
+            df,
+            width='stretch'
+        )
+
+    except Exception as e:
+
+        st.error(str(e))

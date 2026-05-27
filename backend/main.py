@@ -3,7 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import engine
 from database import Base
-
+from utils.security import (
+    hash_password,
+    verify_password
+)
 import models
 
 from routers import (
