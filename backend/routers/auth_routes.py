@@ -7,7 +7,7 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 import models
-
+from models import Employee
 from database import get_db
 
 from utils.security import (
@@ -40,6 +40,7 @@ router = APIRouter(
 # LOGIN
 # ==========================================
 
+
 @router.post("/login")
 def login(
     data: dict,
@@ -47,14 +48,16 @@ def login(
 ):
 
     emp_id = data.get("emp_id")
+
     password = data.get("password")
+
     role = data.get("role")
 
-    user = db.query(
-        models.Employee
-    ).filter(
-        models.Employee.emp_id == emp_id
+    user = db.query(Employee).filter(
+        Employee.emp_id == emp_id
     ).first()
+
+    # USER NOT FOUND
 
     if not user:
 
@@ -63,7 +66,7 @@ def login(
             detail="Employee not found"
         )
 
-    # VERIFY PASSWORD
+    # PASSWORD CHECK
 
     if not verify_password(
         password,
@@ -75,24 +78,35 @@ def login(
             detail="Invalid password"
         )
 
-    # VERIFY ROLE
+    # ROLE CHECK
 
-    if user.role.lower() != role.lower():
+    if role:
 
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid role"
-        )
+        if user.role.lower() != role.lower():
+
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid role"
+            )
+
+    # SUCCESS RESPONSE
 
     return {
 
         "message": "Login successful",
 
-        "role": user.role,
+        "employee": {
 
-        "emp_id": user.emp_id,
+            "id": user.id,
 
-        "emp_name": user.emp_name
+            "emp_id": user.emp_id,
+
+            "name": user.emp_name,
+
+            "role": user.role
+
+        }
+
     }
 
 @router.post("/register")

@@ -4,59 +4,21 @@ import pandas as pd
 
 API = "http://127.0.0.1:8000"
 
-
 def show_employee_attendance():
 
-    st.title("Attendance")
+    st.title("My Attendance")
 
-    emp_id = st.session_state.get(
-        "emp_id"
-    )
-
-    # MARK ATTENDANCE
-
-    if st.button(
-        "Mark Attendance",
-        width="stretch"
-    ):
-
-        response = requests.post(
-
-            f"{API}/api/v1/attendance/mark",
-
-            json={
-
-                "employee_id": emp_id
-
-            }
-
-        )
-
-        if response.status_code == 200:
-
-            st.success(
-                response.json()["message"]
-            )
-
-        else:
-
-            st.error(
-                response.text
-            )
-
-    st.divider()
-
-    # FETCH EMPLOYEE ATTENDANCE
+    emp_id = st.session_state.emp_id
 
     response = requests.get(
-        f"{API}/api/v1/attendance/{emp_id}"
+        f"{API}/api/v1/reports/employee/{emp_id}"
     )
 
     if response.status_code == 200:
 
         data = response.json()
 
-        if len(data) > 0:
+        if data:
 
             df = pd.DataFrame(data)
 
@@ -65,14 +27,26 @@ def show_employee_attendance():
                 width="stretch"
             )
 
+            csv = df.to_csv(
+                index=False
+            ).encode("utf-8")
+
+            st.download_button(
+                "Download My Attendance",
+                csv,
+                "my_attendance.csv",
+                "text/csv",
+                width="stretch"
+            )
+
         else:
 
-            st.info(
+            st.warning(
                 "No attendance records found"
             )
 
     else:
 
         st.error(
-            "Unable to fetch attendance"
+            "Failed to load attendance"
         )

@@ -1,50 +1,59 @@
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException
+)
+
 from sqlalchemy.orm import Session
+
 from database import get_db
-from datetime import datetime
-import models
+
+from models import (
+    Attendance,
+    Employee
+)
 
 router = APIRouter(
     prefix="/api/v1/attendance",
     tags=["Attendance"]
 )
 
-# =========================================
-# EMPLOYEE MARK ATTENDANCE
-# =========================================
 
-@router.post("/mark")
-def mark_attendance(
+# =========================================================
+# MANUAL ATTENDANCE
+# =========================================================
+
+@router.post("/manual")
+def manual_attendance(
     data: dict,
     db: Session = Depends(get_db)
 ):
 
-    employee_id = data.get(
-        "employee_id"
-    )
-
-    today = datetime.today().date()
-
-    existing = db.query(
-        models.Attendance
+    employee = db.query(
+        Employee
     ).filter(
-        models.Attendance.employee_id == employee_id,
-        models.Attendance.attendance_date == today
+        Employee.emp_id == data["employee_id"]
     ).first()
 
-    if existing:
+    if not employee:
 
         raise HTTPException(
-            status_code=400,
-            detail="Attendance already marked today"
+            status_code=404,
+            detail="Employee not found"
         )
 
-    attendance = models.Attendance(
+    attendance = Attendance(
 
-        employee_id=employee_id,
-        attendance_date=today,
-        status="Present",
-        check_in=datetime.now()
+        employee_id=employee.emp_id,
+
+        attendance_date=data["attendance_date"],
+
+        status=data["status"],
+
+        shift_name=data["shift_name"]
+
     )
 
     db.add(attendance)
@@ -55,61 +64,78 @@ def mark_attendance(
         "message": "Attendance marked successfully"
     }
 
-# =========================================
-# GET EMPLOYEE ATTENDANCE
-# =========================================
 
-@router.get("/employee/{employee_id}")
-def get_employee_attendance(
-    employee_id: str,
+# =========================================================
+# GET ALL ATTENDANCE
+# =========================================================
+
+@router.get("/")
+def get_attendance(
     db: Session = Depends(get_db)
 ):
 
-    attendance = db.query(
-        models.Attendance
-    ).filter(
-        models.Attendance.employee_id == employee_id
+    records = db.query(
+        Attendance
     ).all()
 
     result = []
 
-    for row in attendance:
+    for row in records:
+
+        employee = db.query(
+            Employee
+        ).filter(
+            Employee.emp_id == row.employee_id
+        ).first()
 
         result.append({
 
-            "id": row.id,
             "employee_id": row.employee_id,
-            "attendance_date": str(row.attendance_date),
-            "status": row.status,
-            "check_in": str(row.check_in)
+
+            "employee_name": (
+                employee.emp_name
+                if employee else ""
+            ),
+
+            "date": str(
+                row.attendance_date
+            ),
+
+            "status": row.status
+
         })
 
     return result
 
-# =========================================
-# GET ALL ATTENDANCE
-# =========================================
 
-@router.get("/")
-def get_all_attendance(
+# =========================================================
+# EMPLOYEE ATTENDANCE
+# =========================================================
+
+@router.get("/employee/{emp_id}")
+def employee_attendance(
+    emp_id: str,
     db: Session = Depends(get_db)
 ):
 
-    attendance = db.query(
-        models.Attendance
+    records = db.query(
+        Attendance
+    ).filter(
+        Attendance.employee_id == emp_id
     ).all()
 
     result = []
 
-    for row in attendance:
+    for row in records:
 
         result.append({
 
-            "id": row.id,
-            "employee_id": row.employee_id,
-            "attendance_date": str(row.attendance_date),
-            "status": row.status,
-            "check_in": str(row.check_in)
+            "date": str(
+                row.attendance_date
+            ),
+
+            "status": row.status
+
         })
 
     return result

@@ -14,6 +14,9 @@ from routers import (
     dashboard_routes,
     shift_routes,
 )
+from routers import report_routes
+from routers import employee_routes
+from routers import attendance_routes
 
 Base.metadata.create_all(
     bind=engine
@@ -42,7 +45,13 @@ app.include_router(
 app.include_router(
     dashboard_routes.router
 )
-
+app.include_router(
+    report_routes.router
+)
+app.include_router(
+    employee_routes.router
+)
+app.include_router(attendance_routes.router)
 
 @app.get("/")
 def root():

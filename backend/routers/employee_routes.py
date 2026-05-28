@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 import database
 import models
+from database import get_db
+from models import Employee
 
 
 from database import SessionLocal
@@ -24,6 +26,42 @@ def get_employees(
 
     return employees
 
+
+
+# # ======================================================
+# # GET ALL EMPLOYEES
+# # ======================================================
+
+# @router.get("/")
+# def get_employees(
+#     db: Session = Depends(get_db)
+# ):
+
+#     employees = db.query(
+#         Employee
+#     ).all()
+
+#     result = []
+
+#     for emp in employees:
+
+#         result.append({
+
+#             "id": emp.id,
+
+#             "emp_id": emp.emp_id,
+
+#             "name": emp.emp_name,
+
+#             "department": emp.department,
+
+#             "designation": emp.designation,
+
+#             "role": emp.role
+
+#         })
+
+#     return result
 
 @router.delete("/{employee_id}")
 def delete_employee(
@@ -81,7 +119,6 @@ def change_password(
     return {
         "message": "Password Updated Successfully"
     }
-
 
 
 

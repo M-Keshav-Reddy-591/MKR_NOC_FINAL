@@ -63,6 +63,8 @@ class Attendance(Base):
 
     status = Column(String(50))
 
+    shift_name = Column(String(100))
+
     check_in = Column(DateTime, default=datetime.utcnow)
 
 class ShiftAssignment(Base):
@@ -76,8 +78,7 @@ class ShiftAssignment(Base):
     )
 
     employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
+        String(50)
     )
 
     shift_name = Column(
@@ -90,7 +91,12 @@ class ShiftAssignment(Base):
 
     shift_date = Column(Date)
 
-    is_holiday = Column(Boolean, default=False)
+    is_holiday = Column(
+        Boolean,
+        default=False
+    )
 
-    holiday_note = Column(String(500))
+    holiday_note = Column(
+        String(500)
+    )
 

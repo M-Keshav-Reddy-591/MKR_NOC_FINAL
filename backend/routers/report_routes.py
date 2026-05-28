@@ -1,36 +1,100 @@
-from fastapi import APIRouter, Depends
+from fastapi import (
+    APIRouter,
+    Depends
+)
+
 from sqlalchemy.orm import Session
 
-import database
-import models
+from database import get_db
+
+from models import (
+    Attendance,
+    Employee
+)
 
 router = APIRouter(
     prefix="/api/v1/reports",
     tags=["Reports"]
 )
 
+
+# =========================================================
+# ALL REPORTS
+# =========================================================
+
 @router.get("/all")
-def all_reports(
-    db: Session = Depends(database.get_db)
+def get_all_reports(
+    db: Session = Depends(get_db)
 ):
 
-    reports = db.query(
-        models.Attendance
+    records = db.query(
+        Attendance
     ).all()
 
-    return reports
+    result = []
 
+    for row in records:
+
+        employee = db.query(
+            Employee
+        ).filter(
+            Employee.emp_id == row.employee_id
+        ).first()
+
+        result.append({
+
+            "employee_id": row.employee_id,
+
+            "employee_name": (
+                employee.emp_name
+                if employee else ""
+            ),
+
+            "date": str(
+                row.attendance_date
+            ),
+
+            "shift_name": row.shift_name,
+
+            "status": row.status
+
+
+
+        })
+
+    return result
+
+
+# =========================================================
+# EMPLOYEE REPORT
+# =========================================================
 
 @router.get("/employee/{emp_id}")
-def employee_reports(
+def employee_report(
     emp_id: str,
-    db: Session = Depends(database.get_db)
+    db: Session = Depends(get_db)
 ):
 
-    reports = db.query(
-        models.Attendance
+    records = db.query(
+        Attendance
     ).filter(
-        models.Attendance.emp_id == emp_id
+        Attendance.employee_id == emp_id
     ).all()
 
-    return reports
+    result = []
+
+    for row in records:
+
+        result.append({
+
+            "date": str(
+                row.attendance_date
+            ),
+
+            "shift_name": row.shift_name,
+
+            "status": row.status
+
+        })
+
+    return result
