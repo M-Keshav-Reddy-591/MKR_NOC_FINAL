@@ -62,11 +62,16 @@ def register_user(
 
         designation=data.get("designation"),
 
+        phone_number=data.get("phone_number"),
+
+        email=data.get("email"),
+
         role=data.get("role"),
 
         password=hashed_password
-
     )
+
+
 
     db.add(new_user)
 

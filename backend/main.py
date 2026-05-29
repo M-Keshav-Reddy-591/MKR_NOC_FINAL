@@ -8,7 +8,7 @@ from utils.security import (
     verify_password
 )
 import models
-
+import scheduler
 from routers import (
     auth_routes,
     dashboard_routes,
@@ -19,7 +19,7 @@ from routers import employee_routes
 from routers import attendance_routes
 from routers.leave_routes import router as leave_router
 from routers import notification_routes
-
+from routers import swap_routes
 
 
 
@@ -49,7 +49,7 @@ app.include_router(employee_routes.router)
 app.include_router(attendance_routes.router)
 app.include_router(leave_router)
 app.include_router(notification_routes.router)
-
+app.include_router(swap_routes.router)
 
 
 

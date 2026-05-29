@@ -18,6 +18,13 @@ def admin_sidebar():
             width="stretch"
         ):
             st.session_state.page = "employees"
+        
+        if st.button(
+            "✏️ Edit Employees",
+            width="stretch"
+        ):
+            st.session_state.page = "edit_employees"
+
 
         if st.button(
             "Shifts",
@@ -54,6 +61,13 @@ def admin_sidebar():
             width="stretch"
         ):
             st.session_state.page = "admin_notifications"
+        
+        if st.button(
+            "🔄 Shift Swaps",
+            width="stretch"
+        ):
+            st.session_state.page = "swap_alerts"
+        
 
         if st.button(
             "Change Password",
@@ -106,6 +120,13 @@ def employee_sidebar():
             width="stretch"
         ):
             st.session_state.page = "notifications"
+        
+        if st.button(
+            "🔄 Shift Swap",
+            width="stretch"
+        ):
+            st.session_state.page = "shift_swap"
+        
 
         if st.button(
             "Change Password",

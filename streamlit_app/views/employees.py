@@ -1,16 +1,18 @@
+
 import streamlit as st
 import requests
 import pandas as pd
 
 API = "http://127.0.0.1:8000/api/v1"
 
+
 def show_employees():
 
     st.title("Employee Management")
 
-    # ==========================
-    # ADD EMPLOYEE FORM
-    # ==========================
+    # =====================================================
+    # ADD NEW EMPLOYEE
+    # =====================================================
 
     st.subheader("Add New Employee")
 
@@ -30,16 +32,22 @@ def show_employees():
             "Department"
         )
 
+        phone_number = st.text_input(
+            "Phone Number"
+        )
+
     with col2:
 
         designation = st.text_input(
             "Designation"
         )
 
+        email = st.text_input(
+            "Email"
+        )
+
         role = st.selectbox(
-
             "Role",
-
             [
                 "employee",
                 "admin"
@@ -51,41 +59,55 @@ def show_employees():
             type="password"
         )
 
-    # ==========================
-    # REGISTER BUTTON
-    # ==========================
+    # =====================================================
+    # ADD EMPLOYEE BUTTON
+    # =====================================================
 
-    if st.button("Add Employee"):
+    if st.button(
+        "Add Employee",
+        width="stretch"
+    ):
 
         payload = {
 
             "emp_id": emp_id,
+
             "emp_name": emp_name,
+
             "department": department,
+
             "designation": designation,
+
+            "phone_number": phone_number,
+
+            "email": email,
+
             "role": role,
+
             "password": password
         }
 
         try:
 
             response = requests.post(
-
                 f"{API}/auth/register",
-
                 json=payload
             )
+
+            data = response.json()
 
             if response.status_code == 200:
 
                 st.success(
-                    "Employee Added Successfully"
+                    data["message"]
                 )
+
+                st.rerun()
 
             else:
 
                 st.error(
-                    response.json()["detail"]
+                    data["detail"]
                 )
 
         except Exception as e:
@@ -94,9 +116,9 @@ def show_employees():
 
     st.divider()
 
-    # ==========================
-    # EMPLOYEE TABLE
-    # ==========================
+    # =====================================================
+    # EMPLOYEE LIST
+    # =====================================================
 
     st.subheader("Employee List")
 
@@ -106,14 +128,22 @@ def show_employees():
             f"{API}/employees"
         )
 
-        data = response.json()
+        if response.status_code == 200:
 
-        df = pd.DataFrame(data)
+            data = response.json()
 
-        st.dataframe(
-            df,
-            width="stretch"
-        )
+            df = pd.DataFrame(data)
+
+            st.dataframe(
+                df,
+                width="stretch"
+            )
+
+        else:
+
+            st.error(
+                "Failed to load employees"
+            )
 
     except Exception as e:
 

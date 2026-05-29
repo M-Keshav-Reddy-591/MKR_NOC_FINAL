@@ -6,6 +6,10 @@ from components.sidebar import (
     employee_sidebar
 )
 
+from views.edit_employees import (
+    show_edit_employees
+)
+
 from views.admin_dashboard import (
     show_admin_dashboard
 )
@@ -46,6 +50,14 @@ from views.password_logs import (
 
 from views.notifications import (
     show_notifications
+)
+
+from views.shift_swap import (
+    show_shift_swap
+)
+
+from views.swap_alerts import (
+    show_swap_alerts
 )
 
 from views.leave_alerts import (
@@ -201,6 +213,18 @@ elif st.session_state.role == "admin":
     elif page == "employees":
 
         show_employees()
+    
+    elif st.session_state.page == "edit_employees":
+
+        show_edit_employees()
+
+
+
+    elif st.session_state.page == "swap_alerts":
+
+        show_swap_alerts()
+
+
 
     elif page == "shifts":
 
@@ -246,6 +270,9 @@ elif st.session_state.role == "employee":
         show_employee_attendance()
     elif page == "apply_leave":
         show_apply_leave()
+    elif st.session_state.page == "shift_swap":
+
+        show_shift_swap()
 
     elif page == "change_password":
 
