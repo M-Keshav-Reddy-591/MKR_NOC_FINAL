@@ -109,17 +109,26 @@ def create_shift(
 
         )
 
+
     # ============================================
     # CREATE SHIFT
     # ============================================
 
     shift = ShiftAssignment(
 
-        employee_id=employee.emp_id,
+        employee_id=data["employee_id"],
 
         shift_name=data["shift_name"],
 
         shift_date=data["shift_date"],
+
+        start_time=data.get(
+            "start_time"
+        ),
+
+        end_time=data.get(
+            "end_time"
+        ),
 
         is_holiday=data.get(
             "is_holiday",
@@ -134,24 +143,31 @@ def create_shift(
     )
 
     db.add(shift)
+
     notification = Notification(
 
         employee_id=data["employee_id"],
 
         title="New Shift Assigned",
 
-        message=f"You have been assigned {data['shift_name']} shift on {data['shift_date']}"
+        message=(
+            f"You have been assigned "
+            f"{data['shift_name']} shift "
+            f"on {data['shift_date']}"
+        ),
+
+        is_read=False
 
     )
 
     db.add(notification)
-
 
     db.commit()
 
     return {
         "message": "Shift assigned successfully"
     }
+
 
 # @router.post("/create")
 # def create_shift(

@@ -33,6 +33,13 @@ def admin_sidebar():
             st.session_state.page = "shifts"
 
         if st.button(
+            "📂 CSV Shift Upload",
+            width="stretch"
+        ):
+            st.session_state.page = "upload_shift_csv"
+
+
+        if st.button(
             "Manual Attendance",
             width="stretch"
         ):

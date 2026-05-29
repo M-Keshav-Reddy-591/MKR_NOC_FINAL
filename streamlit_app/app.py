@@ -6,6 +6,10 @@ from components.sidebar import (
     employee_sidebar
 )
 
+from views.upload_shift_csv import (
+    show_upload_shift_csv
+)
+
 from views.edit_employees import (
     show_edit_employees
 )
@@ -236,7 +240,9 @@ elif st.session_state.role == "admin":
     elif page == "shifts":
 
         show_shifts()
+    elif page == "upload_shift_csv":
 
+        show_upload_shift_csv()
     elif page == "manual_attendance":
 
         show_manual_attendance()
