@@ -100,3 +100,37 @@ class ShiftAssignment(Base):
         String(500)
     )
 
+class Leave(Base):
+
+    __tablename__ = "leaves"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    employee_id = Column(
+        String(50)
+    )
+
+    leave_date = Column(
+        Date
+    )
+
+    shift_name = Column(
+        String(100)
+    )
+
+    leave_type = Column(
+        String(100)
+    )
+
+    reason = Column(
+        String(500)
+    )
+
+    status = Column(
+        String(50),
+        default="Pending"
+    )

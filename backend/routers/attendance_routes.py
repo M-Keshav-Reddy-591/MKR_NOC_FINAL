@@ -1,5 +1,3 @@
-from datetime import date
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -14,7 +12,11 @@ from models import (
     Attendance,
     Employee
 )
-
+from datetime import (
+    datetime,
+    date
+)
+from models import ShiftAssignment
 router = APIRouter(
     prefix="/api/v1/attendance",
     tags=["Attendance"]
@@ -30,6 +32,27 @@ def manual_attendance(
     data: dict,
     db: Session = Depends(get_db)
 ):
+    existing = db.query(
+        Attendance
+    ).filter(
+
+        Attendance.employee_id == employee.emp_id,
+
+        Attendance.attendance_date == data["attendance_date"],
+
+        Attendance.shift_name == data["shift_name"]
+
+    ).first()
+
+    if existing:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Attendance already marked"
+
+        )
 
     employee = db.query(
         Employee
@@ -111,7 +134,6 @@ def get_attendance(
 # =========================================================
 # EMPLOYEE ATTENDANCE
 # =========================================================
-
 @router.get("/employee/{emp_id}")
 def employee_attendance(
     emp_id: str,
@@ -134,8 +156,70 @@ def employee_attendance(
                 row.attendance_date
             ),
 
+            "shift_name": row.shift_name,
+
             "status": row.status
 
         })
 
     return result
+@router.post("/auto-absent")
+def auto_absent(
+    db: Session = Depends(get_db)
+):
+
+    today = date.today()
+
+    shifts = db.query(
+        ShiftAssignment
+    ).filter(
+        ShiftAssignment.shift_date == today
+    ).all()
+
+    current_time = datetime.now().time()
+
+    count = 0
+
+    for shift in shifts:
+
+        if shift.end_time:
+
+            if current_time > shift.end_time:
+
+                existing = db.query(
+                    Attendance
+                ).filter(
+
+                    Attendance.employee_id == shift.employee_id,
+
+                    Attendance.attendance_date == today,
+
+                    Attendance.shift_name == shift.shift_name
+
+                ).first()
+
+                if not existing:
+
+                    absent = Attendance(
+
+                        employee_id=shift.employee_id,
+
+                        attendance_date=today,
+
+                        shift_name=shift.shift_name,
+
+                        status="Absent"
+
+                    )
+
+                    db.add(absent)
+
+                    count += 1
+
+    db.commit()
+
+    return {
+
+        "message": f"{count} employees marked absent"
+
+    }

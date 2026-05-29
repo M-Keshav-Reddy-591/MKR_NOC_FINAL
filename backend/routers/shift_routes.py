@@ -44,9 +44,17 @@ def create_shift(
 
     shift = ShiftAssignment(
 
-        employee_id=employee.id,
+        employee_id=employee.emp_id,
 
         shift_name=data["shift_name"],
+
+        start_time=data.get(
+            "start_time"
+        ),
+
+        end_time=data.get(
+            "end_time"
+        ),
 
         shift_date=data["shift_date"],
 
@@ -91,25 +99,30 @@ def all_shifts(
         employee = db.query(
             Employee
         ).filter(
-            Employee.id == shift.employee_id
+            Employee.emp_id == shift.employee_id
         ).first()
 
         result.append({
 
-            "employee_id": (
-                employee.emp_id
-                if employee else ""
-            ),
+            "employee_id": shift.employee_id,
 
             "employee_name": (
                 employee.emp_name
                 if employee else ""
             ),
 
-            "shift": shift.shift_name,
+            "shift_name": shift.shift_name,
 
-            "date": str(
+            "shift_date": str(
                 shift.shift_date
+            ),
+
+            "start_time": str(
+                shift.start_time
+            ),
+
+            "end_time": str(
+                shift.end_time
             ),
 
             "holiday": shift.is_holiday
@@ -123,44 +136,6 @@ def all_shifts(
 # EMPLOYEE SHIFTS
 # =========================================================
 
-# @router.get("/{emp_id}")
-# def employee_shifts(
-#     emp_id: str,
-#     db: Session = Depends(get_db)
-# ):
-
-#     employee = db.query(
-#         Employee
-#     ).filter(
-#         Employee.emp_id == emp_id
-#     ).first()
-
-#     if not employee:
-#         return []
-
-#     shifts = db.query(
-#         ShiftAssignment
-#     ).filter(
-#         ShiftAssignment.employee_id == employee.id
-#     ).all()
-
-#     result = []
-
-#     for shift in shifts:
-
-#         result.append({
-
-#             "shift": shift.shift_name,
-
-#             "date": str(
-#                 shift.shift_date
-#             ),
-
-#             "holiday": shift.is_holiday
-
-#         })
-
-#     return result
 @router.get("/{emp_id}")
 def employee_shifts(
     emp_id: str,
@@ -191,7 +166,9 @@ def employee_shifts(
 
             "end_time": str(
                 shift.end_time
-            )
+            ),
+
+            "holiday": shift.is_holiday
 
         })
 
@@ -202,41 +179,6 @@ def employee_shifts(
 # SHIFTS BY DATE
 # =========================================================
 
-# @router.get("/{emp_id}/{shift_date}")
-# def shifts_by_date(
-#     emp_id: str,
-#     shift_date: str,
-#     db: Session = Depends(get_db)
-# ):
-
-#     employee = db.query(
-#         Employee
-#     ).filter(
-#         Employee.emp_id == emp_id
-#     ).first()
-
-#     if not employee:
-#         return []
-
-#     shifts = db.query(
-#         ShiftAssignment
-#     ).filter(
-
-#         ShiftAssignment.employee_id == employee.id,
-
-#         ShiftAssignment.shift_date == shift_date
-
-#     ).all()
-
-#     result = []
-
-#     for shift in shifts:
-
-#         result.append(
-#             shift.shift_name
-#         )
-
-#     return result
 @router.get("/{emp_id}/{shift_date}")
 def shifts_by_date(
     emp_id: str,
@@ -258,8 +200,18 @@ def shifts_by_date(
 
     for shift in shifts:
 
-        result.append(
-            shift.shift_name
-        )
+        result.append({
+
+            "shift_name": shift.shift_name,
+
+            "start_time": str(
+                shift.start_time
+            ),
+
+            "end_time": str(
+                shift.end_time
+            )
+
+        })
 
     return result

@@ -37,7 +37,13 @@ from views.employee_dashboard import (
 from views.employee_attendance import (
     show_employee_attendance
 )
+from views.apply_leave import (
+    show_apply_leave
+)
 
+from views.leave_alerts import (
+    show_leave_alerts
+)
 # =========================================================
 # PAGE CONFIG
 # =========================================================
@@ -200,6 +206,8 @@ elif st.session_state.role == "admin":
     elif page == "reports":
 
         show_reports()
+    elif page == "leave_alerts":
+        show_leave_alerts()
 
     elif page == "change_password":
 
@@ -222,6 +230,8 @@ elif st.session_state.role == "employee":
     elif page == "attendance":
 
         show_employee_attendance()
+    elif page == "apply_leave":
+        show_apply_leave()
 
     elif page == "change_password":
 

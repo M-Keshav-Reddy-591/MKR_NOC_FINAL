@@ -17,7 +17,7 @@ from routers import (
 from routers import report_routes
 from routers import employee_routes
 from routers import attendance_routes
-
+from routers.leave_routes import router as leave_router
 Base.metadata.create_all(
     bind=engine
 )
@@ -36,23 +36,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(
-    auth_routes.router
-)
-app.include_router(
-    shift_routes.router
-)
-app.include_router(
-    dashboard_routes.router
-)
-app.include_router(
-    report_routes.router
-)
-app.include_router(
-    employee_routes.router
-)
+app.include_router(auth_routes.router)
+app.include_router(shift_routes.router)
+app.include_router(dashboard_routes.router)
+app.include_router(report_routes.router)
+app.include_router(employee_routes.router)
 app.include_router(attendance_routes.router)
-
+app.include_router(leave_router)
 @app.get("/")
 def root():
 
