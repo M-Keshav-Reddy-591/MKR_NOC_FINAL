@@ -99,6 +99,7 @@ def manual_attendance(
 # EMPLOYEE MARK PRESENT
 # =========================================================
 
+
 @router.post("/mark")
 def mark_attendance(
     data: dict,
@@ -111,26 +112,9 @@ def mark_attendance(
 
     shift_name = data["shift_name"]
 
-    # =====================================================
-    # EMPLOYEE EXISTS
-    # =====================================================
-
-    employee = db.query(
-        Employee
-    ).filter(
-        Employee.emp_id == employee_id
-    ).first()
-
-    if not employee:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Employee not found"
-        )
-
-    # =====================================================
-    # SHIFT EXISTS
-    # =====================================================
+    # ============================================
+    # CHECK SHIFT
+    # ============================================
 
     shift = db.query(
         ShiftAssignment
@@ -151,20 +135,26 @@ def mark_attendance(
             detail="Shift not assigned"
         )
 
-    # =====================================================
-    # CURRENT TIME CHECK
-    # =====================================================
+    # ============================================
+    # CHECK SHIFT TIME EXISTS
+    # ============================================
+
+    if not shift.start_time or not shift.end_time:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Shift timing missing"
+        )
 
     current_time = datetime.now().time()
 
     start_time = shift.start_time
+
     end_time = shift.end_time
 
-    # =====================================================
+    # ============================================
     # NORMAL SHIFT
-    # Example:
-    # 06:00 -> 14:00
-    # =====================================================
+    # ============================================
 
     if start_time < end_time:
 
@@ -182,11 +172,9 @@ def mark_attendance(
                 detail=f"Shift ended at {end_time}"
             )
 
-    # =====================================================
+    # ============================================
     # NIGHT SHIFT
-    # Example:
-    # 22:00 -> 06:00
-    # =====================================================
+    # ============================================
 
     else:
 
@@ -207,22 +195,9 @@ def mark_attendance(
                 detail="Outside shift timing"
             )
 
-    # =====================================================
-    # ATTENDANCE ONLY ON SHIFT DATE
-    # =====================================================
-
-    today = str(date.today())
-
-    if attendance_date != today:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Attendance allowed only for today's shift"
-        )
-
-    # =====================================================
-    # ONLY ONE ATTENDANCE
-    # =====================================================
+    # ============================================
+    # CHECK DUPLICATE ATTENDANCE
+    # ============================================
 
     existing = db.query(
         Attendance
@@ -243,9 +218,9 @@ def mark_attendance(
             detail="Attendance already marked"
         )
 
-    # =====================================================
+    # ============================================
     # SAVE ATTENDANCE
-    # =====================================================
+    # ============================================
 
     attendance = Attendance(
 
@@ -253,9 +228,9 @@ def mark_attendance(
 
         attendance_date=attendance_date,
 
-        status="Present",
+        shift_name=shift_name,
 
-        shift_name=shift_name
+        status="Present"
 
     )
 

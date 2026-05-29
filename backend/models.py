@@ -163,6 +163,8 @@ class PasswordLog(Base):
         default=datetime.utcnow
     )
 
+
+
 class Notification(Base):
 
     __tablename__ = "notifications"
@@ -194,3 +196,4 @@ class Notification(Base):
         Boolean,
         default=False
     )
+

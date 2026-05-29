@@ -10,7 +10,8 @@ from database import get_db
 
 from models import (
     Employee,
-    PasswordLog
+    PasswordLog,
+    Notification
 )
 
 from utils.security import (
@@ -101,8 +102,6 @@ def login(
             detail="Employee not found"
         )
 
-    # PASSWORD VERIFY
-
     if not verify_password(
         data["password"],
         user.password
@@ -112,8 +111,6 @@ def login(
             status_code=401,
             detail="Invalid password"
         )
-
-    # ROLE VERIFY
 
     if user.role.lower() != data["role"].lower():
 
@@ -140,7 +137,7 @@ def login(
 
 
 # =========================================================
-# EMPLOYEE CHANGE PASSWORD
+# CHANGE PASSWORD
 # =========================================================
 
 @router.post("/change-password")
@@ -188,6 +185,38 @@ def change_password(
 
     db.add(log)
 
+    # =====================================================
+    # ADMIN NOTIFICATION
+    # =====================================================
+
+    admin_notification = Notification(
+
+        employee_id="ADMIN",
+
+        title="Password Changed",
+
+        message=f"{user.emp_name} changed account password"
+
+    )
+
+    db.add(admin_notification)
+
+    # =====================================================
+    # EMPLOYEE NOTIFICATION
+    # =====================================================
+
+    employee_notification = Notification(
+
+        employee_id=user.emp_id,
+
+        title="Password Changed",
+
+        message="Your password was changed successfully"
+
+    )
+
+    db.add(employee_notification)
+
     db.commit()
 
     return {
@@ -234,6 +263,18 @@ def admin_reset_password(
 
     db.add(log)
 
+    employee_notification = Notification(
+
+        employee_id=user.emp_id,
+
+        title="Password Reset",
+
+        message="Admin reset your password"
+
+    )
+
+    db.add(employee_notification)
+
     db.commit()
 
     return {
@@ -252,6 +293,8 @@ def password_logs(
 
     logs = db.query(
         PasswordLog
+    ).order_by(
+        PasswordLog.id.desc()
     ).all()
 
     result = []
@@ -262,6 +305,8 @@ def password_logs(
 
             "employee_id": log.employee_id,
 
+            "employee_name": log.employee_name,
+
             "changed_by": log.changed_by,
 
             "changed_at": str(
@@ -271,3 +316,4 @@ def password_logs(
         })
 
     return result
+

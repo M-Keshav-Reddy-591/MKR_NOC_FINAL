@@ -24,6 +24,8 @@ def show_employee_attendance():
 
     shifts = []
 
+    shift_details = {}
+
     if shifts_response.status_code == 200:
 
         shift_data = shifts_response.json()
@@ -32,9 +34,18 @@ def show_employee_attendance():
 
             if isinstance(row, dict):
 
-                shifts.append(
-                    row["shift_name"]
+                shift_name = row.get(
+                    "shift_name",
+                    ""
                 )
+
+                shifts.append(
+                    shift_name
+                )
+
+                shift_details[
+                    shift_name
+                ] = row
 
             else:
 
@@ -67,6 +78,33 @@ def show_employee_attendance():
             shifts
         )
 
+        # =================================================
+        # SHOW SHIFT TIMINGS
+        # =================================================
+
+        shift_info = shift_details.get(
+            selected_shift,
+            {}
+        )
+
+        start_time = shift_info.get(
+            "start_time",
+            "-"
+        )
+
+        end_time = shift_info.get(
+            "end_time",
+            "-"
+        )
+
+        st.info(
+            f"Shift Time : {start_time} → {end_time}"
+        )
+
+        # =================================================
+        # CHECK DUPLICATE
+        # =================================================
+
         already_marked = False
 
         for row in attendance_data:
@@ -88,6 +126,10 @@ def show_employee_attendance():
                 )
 
                 break
+
+        # =================================================
+        # MARK ATTENDANCE
+        # =================================================
 
         if not already_marked:
 
@@ -138,7 +180,7 @@ def show_employee_attendance():
 
     else:
 
-        st.info(
+        st.warning(
             "No shifts assigned today"
         )
 
@@ -166,3 +208,4 @@ def show_employee_attendance():
         st.warning(
             "No attendance records"
         )
+

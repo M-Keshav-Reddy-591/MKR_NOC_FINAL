@@ -11,6 +11,7 @@ from database import get_db
 from models import (
     Leave,
     Employee,
+    Notification,
     ShiftAssignment
 )
 
@@ -43,9 +44,9 @@ def apply_leave(
             detail="Employee not found"
         )
 
-    # ============================================
-    # CHECK SHIFT EXISTS
-    # ============================================
+    # =====================================================
+    # CHECK SHIFT ASSIGNED
+    # =====================================================
 
     shift = db.query(
         ShiftAssignment
@@ -66,9 +67,9 @@ def apply_leave(
             detail="No shift assigned"
         )
 
-    # ============================================
-    # CHECK DUPLICATE LEAVE
-    # ============================================
+    # =====================================================
+    # DUPLICATE CHECK
+    # =====================================================
 
     existing_leave = db.query(
         Leave
@@ -89,9 +90,9 @@ def apply_leave(
             detail="Leave already applied for this shift"
         )
 
-    # ============================================
-    # SAVE LEAVE
-    # ============================================
+    # =====================================================
+    # CREATE LEAVE
+    # =====================================================
 
     leave = Leave(
 
@@ -111,6 +112,22 @@ def apply_leave(
 
     db.add(leave)
 
+    # =====================================================
+    # ADMIN NOTIFICATION
+    # =====================================================
+
+    admin_notification = Notification(
+
+        employee_id="ADMIN",
+
+        title="New Leave Request",
+
+        message=f"{employee.emp_name} applied leave for {data['shift_name']} shift on {data['leave_date']}"
+
+    )
+
+    db.add(admin_notification)
+
     db.commit()
 
     return {
@@ -129,6 +146,8 @@ def all_leaves(
 
     leaves = db.query(
         Leave
+    ).order_by(
+        Leave.id.desc()
     ).all()
 
     result = []
@@ -154,7 +173,7 @@ def all_leaves(
                 leave.leave_date
             ),
 
-            "shift": leave.shift_name,
+            "shift_name": leave.shift_name,
 
             "leave_type": leave.leave_type,
 
@@ -181,6 +200,8 @@ def employee_leaves(
         Leave
     ).filter(
         Leave.employee_id == emp_id
+    ).order_by(
+        Leave.id.desc()
     ).all()
 
     result = []
@@ -204,6 +225,8 @@ def employee_leaves(
         })
 
     return result
+
+
 # =========================================================
 # UPDATE LEAVE STATUS
 # =========================================================
@@ -235,8 +258,25 @@ def update_leave_status(
 
     leave.status = data["status"]
 
+    # =====================================================
+    # EMPLOYEE NOTIFICATION
+    # =====================================================
+
+    notification = Notification(
+
+        employee_id=leave.employee_id,
+
+        title="Leave Status Updated",
+
+        message=f"Your leave for {leave.shift_name} shift on {leave.leave_date} is {leave.status}"
+
+    )
+
+    db.add(notification)
+
     db.commit()
 
     return {
         "message": f"Leave {data['status']}"
     }
+

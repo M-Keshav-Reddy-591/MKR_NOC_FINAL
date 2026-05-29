@@ -10,8 +10,10 @@ from database import get_db
 
 from models import (
     ShiftAssignment,
+    Notification,
     Employee
 )
+
 
 router = APIRouter(
     prefix="/api/v1/shifts",
@@ -132,6 +134,18 @@ def create_shift(
     )
 
     db.add(shift)
+    notification = Notification(
+
+        employee_id=data["employee_id"],
+
+        title="New Shift Assigned",
+
+        message=f"You have been assigned {data['shift_name']} shift on {data['shift_date']}"
+
+    )
+
+    db.add(notification)
+
 
     db.commit()
 

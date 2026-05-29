@@ -48,7 +48,7 @@ def show_leave_alerts():
             )
 
             st.write(
-                f"Shift: {leave['shift']}"
+                f"Shift: {leave['shift_name']}"
             )
 
             st.write(

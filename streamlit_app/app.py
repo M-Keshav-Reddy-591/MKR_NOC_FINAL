@@ -43,6 +43,11 @@ from views.apply_leave import (
 from views.password_logs import (
     show_password_logs
 )
+
+from views.notifications import (
+    show_notifications
+)
+
 from views.leave_alerts import (
     show_leave_alerts
 )
@@ -213,6 +218,10 @@ elif st.session_state.role == "admin":
     elif st.session_state.page == "password_logs":
 
         show_password_logs()
+
+    elif st.session_state.page == "notifications":
+
+        show_notifications()
 
     elif page == "change_password":
 

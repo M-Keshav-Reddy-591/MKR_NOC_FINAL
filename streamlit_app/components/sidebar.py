@@ -50,6 +50,12 @@ def admin_sidebar():
             st.session_state.page = "password_logs"
 
         if st.button(
+            "🔔 Admin Notifications",
+            width="stretch"
+        ):
+            st.session_state.page = "admin_notifications"
+
+        if st.button(
             "Change Password",
             width="stretch"
         ):
@@ -94,6 +100,12 @@ def employee_sidebar():
             width="stretch"
         ):
             st.session_state.page = "apply_leave"
+
+        if st.button(
+            "🔔 Notifications",
+            width="stretch"
+        ):
+            st.session_state.page = "notifications"
 
         if st.button(
             "Change Password",
