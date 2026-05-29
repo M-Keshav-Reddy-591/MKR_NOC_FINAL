@@ -12,11 +12,7 @@ from models import (
     Attendance,
     Employee
 )
-from datetime import (
-    datetime,
-    date
-)
-from models import ShiftAssignment
+
 router = APIRouter(
     prefix="/api/v1/attendance",
     tags=["Attendance"]
@@ -27,32 +23,80 @@ router = APIRouter(
 # MANUAL ATTENDANCE
 # =========================================================
 
+# @router.post("/manual")
+# def manual_attendance(
+#     data: dict,
+#     db: Session = Depends(get_db)
+# ):
+
+#     # ============================================
+#     # CHECK EMPLOYEE
+#     # ============================================
+
+#     employee = db.query(
+#         Employee
+#     ).filter(
+#         Employee.emp_id == data["employee_id"]
+#     ).first()
+
+#     if not employee:
+
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Employee not found"
+#         )
+
+#     # ============================================
+#     # CHECK DUPLICATE ATTENDANCE
+#     # ============================================
+
+#     existing = db.query(
+#         Attendance
+#     ).filter(
+
+#         Attendance.employee_id == employee.emp_id,
+
+#         Attendance.attendance_date == data["attendance_date"],
+
+#         Attendance.shift_name == data["shift_name"]
+
+#     ).first()
+
+#     if existing:
+
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Attendance already marked for this shift"
+#         )
+
+#     # ============================================
+#     # SAVE ATTENDANCE
+#     # ============================================
+
+#     attendance = Attendance(
+
+#         employee_id=employee.emp_id,
+
+#         attendance_date=data["attendance_date"],
+
+#         status=data["status"],
+
+#         shift_name=data["shift_name"]
+
+#     )
+
+#     db.add(attendance)
+
+#     db.commit()
+
+#     return {
+#         "message": "Attendance marked successfully"
+#     }
 @router.post("/manual")
 def manual_attendance(
     data: dict,
     db: Session = Depends(get_db)
 ):
-    existing = db.query(
-        Attendance
-    ).filter(
-
-        Attendance.employee_id == employee.emp_id,
-
-        Attendance.attendance_date == data["attendance_date"],
-
-        Attendance.shift_name == data["shift_name"]
-
-    ).first()
-
-    if existing:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Attendance already marked"
-
-        )
 
     employee = db.query(
         Employee
@@ -67,15 +111,49 @@ def manual_attendance(
             detail="Employee not found"
         )
 
+    # =====================================================
+    # CHECK EXISTING ATTENDANCE
+    # =====================================================
+
+    existing = db.query(
+        Attendance
+    ).filter(
+
+        Attendance.employee_id == data["employee_id"],
+
+        Attendance.attendance_date == data["attendance_date"],
+
+        Attendance.shift_name == data["shift_name"]
+
+    ).first()
+
+    # =====================================================
+    # UPDATE EXISTING
+    # =====================================================
+
+    if existing:
+
+        existing.status = data["status"]
+
+        db.commit()
+
+        return {
+            "message": "Attendance updated successfully"
+        }
+
+    # =====================================================
+    # CREATE NEW
+    # =====================================================
+
     attendance = Attendance(
 
-        employee_id=employee.emp_id,
+        employee_id=data["employee_id"],
 
         attendance_date=data["attendance_date"],
 
-        status=data["status"],
+        shift_name=data["shift_name"],
 
-        shift_name=data["shift_name"]
+        status=data["status"]
 
     )
 
@@ -124,6 +202,8 @@ def get_attendance(
                 row.attendance_date
             ),
 
+            "shift": row.shift_name,
+
             "status": row.status
 
         })
@@ -134,6 +214,7 @@ def get_attendance(
 # =========================================================
 # EMPLOYEE ATTENDANCE
 # =========================================================
+
 @router.get("/employee/{emp_id}")
 def employee_attendance(
     emp_id: str,
@@ -156,70 +237,10 @@ def employee_attendance(
                 row.attendance_date
             ),
 
-            "shift_name": row.shift_name,
+            "shift": row.shift_name,
 
             "status": row.status
 
         })
 
     return result
-@router.post("/auto-absent")
-def auto_absent(
-    db: Session = Depends(get_db)
-):
-
-    today = date.today()
-
-    shifts = db.query(
-        ShiftAssignment
-    ).filter(
-        ShiftAssignment.shift_date == today
-    ).all()
-
-    current_time = datetime.now().time()
-
-    count = 0
-
-    for shift in shifts:
-
-        if shift.end_time:
-
-            if current_time > shift.end_time:
-
-                existing = db.query(
-                    Attendance
-                ).filter(
-
-                    Attendance.employee_id == shift.employee_id,
-
-                    Attendance.attendance_date == today,
-
-                    Attendance.shift_name == shift.shift_name
-
-                ).first()
-
-                if not existing:
-
-                    absent = Attendance(
-
-                        employee_id=shift.employee_id,
-
-                        attendance_date=today,
-
-                        shift_name=shift.shift_name,
-
-                        status="Absent"
-
-                    )
-
-                    db.add(absent)
-
-                    count += 1
-
-    db.commit()
-
-    return {
-
-        "message": f"{count} employees marked absent"
-
-    }

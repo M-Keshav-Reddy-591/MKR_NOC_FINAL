@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
-import pandas as pd
 
-API = "http://127.0.0.1:8000"
+
+API_URL = "http://127.0.0.1:8000"
 
 
 def show_leave_alerts():
@@ -10,75 +10,129 @@ def show_leave_alerts():
     st.title("Leave Alerts")
 
     response = requests.get(
-        f"{API}/api/v1/leaves/"
+        f"{API_URL}/api/v1/leaves/"
     )
 
-    if response.status_code == 200:
+    if response.status_code != 200:
 
-        data = response.json()
+        st.error(
+            "Unable to fetch leave alerts"
+        )
 
-        if data:
+        return
 
-            for leave in data:
+    leaves = response.json()
 
-                with st.container():
+    if not leaves:
 
-                    st.subheader(
-                        leave["employee_name"]
-                    )
+        st.info(
+            "No leave requests found"
+        )
 
-                    st.write(
-                        f"Employee ID: {leave['employee_id']}"
-                    )
+        return
 
-                    st.write(
-                        f"Date: {leave['leave_date']}"
-                    )
+    for index, leave in enumerate(leaves):
 
-                    st.write(
-                        f"Leave Type: {leave['leave_type']}"
-                    )
+        with st.container():
 
-                    st.write(
-                        f"Reason: {leave['reason']}"
-                    )
-
-                    st.write(
-                        f"Status: {leave['status']}"
-                    )
-
-                    col1, col2 = st.columns(2)
-
-                    with col1:
-
-                        if st.button(
-                            f"Approve {leave['id']}"
-                        ):
-
-                            requests.put(
-
-                                f"{API}/api/v1/leaves/approve/{leave['id']}"
-                            )
-
-                            st.rerun()
-
-                    with col2:
-
-                        if st.button(
-                            f"Reject {leave['id']}"
-                        ):
-
-                            requests.put(
-
-                                f"{API}/api/v1/leaves/reject/{leave['id']}"
-                            )
-
-                            st.rerun()
-
-                    st.divider()
-
-        else:
-
-            st.warning(
-                "No leave requests found"
+            st.subheader(
+                leave["employee_name"]
             )
+
+            st.write(
+                f"Employee ID: {leave['employee_id']}"
+            )
+
+            st.write(
+                f"Date: {leave['date']}"
+            )
+
+            st.write(
+                f"Shift: {leave['shift']}"
+            )
+
+            st.write(
+                f"Leave Type: {leave['leave_type']}"
+            )
+
+            st.write(
+                f"Reason: {leave['reason']}"
+            )
+
+            st.write(
+                f"Status: {leave['status']}"
+            )
+
+            col1, col2 = st.columns(2)
+
+            # ============================================
+            # APPROVE
+            # ============================================
+
+            if leave["status"] == "Pending":
+
+                with col1:
+
+                    if st.button(
+
+                        "Approve",
+
+                        key=f"approve_{index}"
+
+                    ):
+
+                        requests.put(
+
+                            f"{API_URL}/api/v1/leaves/update-status",
+
+                            json={
+
+                                "employee_id": leave["employee_id"],
+
+                                "leave_date": leave["date"],
+
+                                "shift_name": leave["shift"],
+
+                                "status": "Approved"
+
+                            }
+
+                        )
+
+                        st.rerun()
+
+                # ============================================
+                # REJECT
+                # ============================================
+
+                with col2:
+
+                    if st.button(
+
+                        "Reject",
+
+                        key=f"reject_{index}"
+
+                    ):
+
+                        requests.put(
+
+                            f"{API_URL}/api/v1/leaves/update-status",
+
+                            json={
+
+                                "employee_id": leave["employee_id"],
+
+                                "leave_date": leave["date"],
+
+                                "shift_name": leave["shift"],
+
+                                "status": "Rejected"
+
+                            }
+
+                        )
+
+                        st.rerun()
+
+            st.divider()

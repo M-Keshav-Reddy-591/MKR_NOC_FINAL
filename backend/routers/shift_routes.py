@@ -29,6 +29,10 @@ def create_shift(
     db: Session = Depends(get_db)
 ):
 
+    # ============================================
+    # CHECK EMPLOYEE
+    # ============================================
+
     employee = db.query(
         Employee
     ).filter(
@@ -42,19 +46,76 @@ def create_shift(
             detail="Employee not found"
         )
 
+    # ============================================
+    # CHECK DUPLICATE SHIFT
+    # SAME SHIFT + SAME DATE
+    # ============================================
+
+    existing_shift = db.query(
+        ShiftAssignment
+    ).filter(
+
+        ShiftAssignment.shift_name == data["shift_name"],
+
+        ShiftAssignment.shift_date == data["shift_date"]
+
+    ).first()
+
+    if existing_shift:
+
+        existing_employee = db.query(
+            Employee
+        ).filter(
+            Employee.emp_id == existing_shift.employee_id
+        ).first()
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=(
+                f"{data['shift_name']} shift already assigned "
+                f"to {existing_employee.emp_name}"
+            )
+
+        )
+
+    # ============================================
+    # CHECK EMPLOYEE ALREADY HAS SHIFT
+    # ============================================
+
+    employee_shift = db.query(
+        ShiftAssignment
+    ).filter(
+
+        ShiftAssignment.employee_id == employee.emp_id,
+
+        ShiftAssignment.shift_date == data["shift_date"]
+
+    ).first()
+
+    if employee_shift:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=(
+                "Employee already has a shift "
+                "assigned for this date"
+            )
+
+        )
+
+    # ============================================
+    # CREATE SHIFT
+    # ============================================
+
     shift = ShiftAssignment(
 
         employee_id=employee.emp_id,
 
         shift_name=data["shift_name"],
-
-        start_time=data.get(
-            "start_time"
-        ),
-
-        end_time=data.get(
-            "end_time"
-        ),
 
         shift_date=data["shift_date"],
 
@@ -77,6 +138,61 @@ def create_shift(
     return {
         "message": "Shift assigned successfully"
     }
+
+# @router.post("/create")
+# def create_shift(
+#     data: dict,
+#     db: Session = Depends(get_db)
+# ):
+
+#     employee = db.query(
+#         Employee
+#     ).filter(
+#         Employee.emp_id == data["employee_id"]
+#     ).first()
+
+#     if not employee:
+
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Employee not found"
+#         )
+
+#     shift = ShiftAssignment(
+
+#         employee_id=employee.emp_id,
+
+#         shift_name=data["shift_name"],
+
+#         start_time=data.get(
+#             "start_time"
+#         ),
+
+#         end_time=data.get(
+#             "end_time"
+#         ),
+
+#         shift_date=data["shift_date"],
+
+#         is_holiday=data.get(
+#             "is_holiday",
+#             False
+#         ),
+
+#         holiday_note=data.get(
+#             "holiday_note",
+#             ""
+#         )
+
+#     )
+
+#     db.add(shift)
+
+#     db.commit()
+
+#     return {
+#         "message": "Shift assigned successfully"
+#     }
 
 
 # =========================================================

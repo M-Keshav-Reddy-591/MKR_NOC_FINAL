@@ -3,12 +3,17 @@ import requests
 import pandas as pd
 from datetime import date
 
-API = "http://127.0.0.1:8000"
+
+API_URL = "http://127.0.0.1:8000"
 
 
 def show_manual_attendance():
 
     st.title("Manual Attendance")
+
+    # =====================================================
+    # EMPLOYEE
+    # =====================================================
 
     employee_id = st.text_input(
         "Employee ID"
@@ -21,11 +26,15 @@ def show_manual_attendance():
 
     shifts = []
 
+    # =====================================================
+    # FETCH SHIFTS
+    # =====================================================
+
     if employee_id:
 
         response = requests.get(
 
-            f"{API}/api/v1/shifts/{employee_id}/{attendance_date}"
+            f"{API_URL}/api/v1/shifts/{employee_id}/{attendance_date}"
 
         )
 
@@ -33,70 +42,118 @@ def show_manual_attendance():
 
             shifts = response.json()
 
-    if not shifts:
+    shift_names = []
 
-        st.warning(
-            "No shifts assigned for this employee on selected date"
+    for shift in shifts:
+
+        if isinstance(shift, dict):
+
+            shift_names.append(
+                shift["shift_name"]
+            )
+
+        else:
+
+            shift_names.append(
+                shift
+            )
+
+    # =====================================================
+    # SHIFT SELECT
+    # =====================================================
+
+    if shift_names:
+
+        selected_shift = st.selectbox(
+            "Assigned Shift",
+            shift_names
         )
-
-        shift_name = ""
 
     else:
 
-        shift_name = st.selectbox(
-            "Assigned Shift",
-            shifts
+        selected_shift = st.text_input(
+            "Shift Name"
         )
 
+    # =====================================================
+    # STATUS
+    # =====================================================
+
     status = st.selectbox(
-        "Status",
+
+        "Attendance Status",
+
         [
             "Present",
             "Absent",
             "Leave"
         ]
+
     )
+
+    # =====================================================
+    # MARK ATTENDANCE
+    # =====================================================
 
     if st.button(
         "Mark Attendance",
         width="stretch"
     ):
 
+        payload = {
+
+            "employee_id": employee_id,
+
+            "attendance_date": str(
+                attendance_date
+            ),
+
+            "shift_name": selected_shift,
+
+            "status": status
+
+        }
+
         response = requests.post(
 
-            f"{API}/api/v1/attendance/manual",
+            f"{API_URL}/api/v1/attendance/manual",
 
-            json={
+            json=payload
 
-                "employee_id": employee_id,
-
-                "attendance_date": str(
-                    attendance_date
-                ),
-
-                "shift_name": shift_name,
-
-                "status": status
-
-            }
         )
 
         if response.status_code == 200:
 
             st.success(
-                response.json()["message"]
+                "Attendance marked successfully"
             )
 
         else:
 
-            st.error(
-                response.text
-            )
+            try:
+
+                st.error(
+                    response.json()["detail"]
+                )
+
+            except:
+
+                st.error(
+                    response.text
+                )
 
     st.divider()
 
+    # =====================================================
+    # ATTENDANCE LIST
+    # =====================================================
+
+    st.subheader(
+        "Attendance Records"
+    )
+
     response = requests.get(
-        f"{API}/api/v1/attendance/"
+        f"{API_URL}/api/v1/attendance/"
     )
 
     if response.status_code == 200:
@@ -114,6 +171,6 @@ def show_manual_attendance():
 
         else:
 
-            st.warning(
+            st.info(
                 "No attendance records found"
             )
