@@ -1,3 +1,8 @@
+from datetime import (
+    date,
+    datetime
+)
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -10,7 +15,8 @@ from database import get_db
 
 from models import (
     Attendance,
-    Employee
+    Employee,
+    ShiftAssignment
 )
 
 router = APIRouter(
@@ -20,78 +26,9 @@ router = APIRouter(
 
 
 # =========================================================
-# MANUAL ATTENDANCE
+# MANUAL ATTENDANCE BY ADMIN
 # =========================================================
 
-# @router.post("/manual")
-# def manual_attendance(
-#     data: dict,
-#     db: Session = Depends(get_db)
-# ):
-
-#     # ============================================
-#     # CHECK EMPLOYEE
-#     # ============================================
-
-#     employee = db.query(
-#         Employee
-#     ).filter(
-#         Employee.emp_id == data["employee_id"]
-#     ).first()
-
-#     if not employee:
-
-#         raise HTTPException(
-#             status_code=404,
-#             detail="Employee not found"
-#         )
-
-#     # ============================================
-#     # CHECK DUPLICATE ATTENDANCE
-#     # ============================================
-
-#     existing = db.query(
-#         Attendance
-#     ).filter(
-
-#         Attendance.employee_id == employee.emp_id,
-
-#         Attendance.attendance_date == data["attendance_date"],
-
-#         Attendance.shift_name == data["shift_name"]
-
-#     ).first()
-
-#     if existing:
-
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Attendance already marked for this shift"
-#         )
-
-#     # ============================================
-#     # SAVE ATTENDANCE
-#     # ============================================
-
-#     attendance = Attendance(
-
-#         employee_id=employee.emp_id,
-
-#         attendance_date=data["attendance_date"],
-
-#         status=data["status"],
-
-#         shift_name=data["shift_name"]
-
-#     )
-
-#     db.add(attendance)
-
-#     db.commit()
-
-#     return {
-#         "message": "Attendance marked successfully"
-#     }
 @router.post("/manual")
 def manual_attendance(
     data: dict,
@@ -111,10 +48,6 @@ def manual_attendance(
             detail="Employee not found"
         )
 
-    # =====================================================
-    # CHECK EXISTING ATTENDANCE
-    # =====================================================
-
     existing = db.query(
         Attendance
     ).filter(
@@ -128,7 +61,7 @@ def manual_attendance(
     ).first()
 
     # =====================================================
-    # UPDATE EXISTING
+    # ADMIN CAN UPDATE EXISTING
     # =====================================================
 
     if existing:
@@ -141,19 +74,188 @@ def manual_attendance(
             "message": "Attendance updated successfully"
         }
 
-    # =====================================================
-    # CREATE NEW
-    # =====================================================
-
     attendance = Attendance(
 
         employee_id=data["employee_id"],
 
         attendance_date=data["attendance_date"],
 
-        shift_name=data["shift_name"],
+        status=data["status"],
 
-        status=data["status"]
+        shift_name=data["shift_name"]
+
+    )
+
+    db.add(attendance)
+
+    db.commit()
+
+    return {
+        "message": "Attendance marked successfully"
+    }
+
+
+# =========================================================
+# EMPLOYEE MARK PRESENT
+# =========================================================
+
+@router.post("/mark")
+def mark_attendance(
+    data: dict,
+    db: Session = Depends(get_db)
+):
+
+    employee_id = data["employee_id"]
+
+    attendance_date = data["attendance_date"]
+
+    shift_name = data["shift_name"]
+
+    # =====================================================
+    # EMPLOYEE EXISTS
+    # =====================================================
+
+    employee = db.query(
+        Employee
+    ).filter(
+        Employee.emp_id == employee_id
+    ).first()
+
+    if not employee:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
+    # =====================================================
+    # SHIFT EXISTS
+    # =====================================================
+
+    shift = db.query(
+        ShiftAssignment
+    ).filter(
+
+        ShiftAssignment.employee_id == employee_id,
+
+        ShiftAssignment.shift_date == attendance_date,
+
+        ShiftAssignment.shift_name == shift_name
+
+    ).first()
+
+    if not shift:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Shift not assigned"
+        )
+
+    # =====================================================
+    # CURRENT TIME CHECK
+    # =====================================================
+
+    current_time = datetime.now().time()
+
+    start_time = shift.start_time
+    end_time = shift.end_time
+
+    # =====================================================
+    # NORMAL SHIFT
+    # Example:
+    # 06:00 -> 14:00
+    # =====================================================
+
+    if start_time < end_time:
+
+        if current_time < start_time:
+
+            raise HTTPException(
+                status_code=400,
+                detail=f"Shift starts at {start_time}"
+            )
+
+        if current_time > end_time:
+
+            raise HTTPException(
+                status_code=400,
+                detail=f"Shift ended at {end_time}"
+            )
+
+    # =====================================================
+    # NIGHT SHIFT
+    # Example:
+    # 22:00 -> 06:00
+    # =====================================================
+
+    else:
+
+        allowed = (
+
+            current_time >= start_time
+
+            or
+
+            current_time <= end_time
+
+        )
+
+        if not allowed:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Outside shift timing"
+            )
+
+    # =====================================================
+    # ATTENDANCE ONLY ON SHIFT DATE
+    # =====================================================
+
+    today = str(date.today())
+
+    if attendance_date != today:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Attendance allowed only for today's shift"
+        )
+
+    # =====================================================
+    # ONLY ONE ATTENDANCE
+    # =====================================================
+
+    existing = db.query(
+        Attendance
+    ).filter(
+
+        Attendance.employee_id == employee_id,
+
+        Attendance.attendance_date == attendance_date,
+
+        Attendance.shift_name == shift_name
+
+    ).first()
+
+    if existing:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Attendance already marked"
+        )
+
+    # =====================================================
+    # SAVE ATTENDANCE
+    # =====================================================
+
+    attendance = Attendance(
+
+        employee_id=employee_id,
+
+        attendance_date=attendance_date,
+
+        status="Present",
+
+        shift_name=shift_name
 
     )
 
@@ -202,7 +304,7 @@ def get_attendance(
                 row.attendance_date
             ),
 
-            "shift": row.shift_name,
+            "shift_name": row.shift_name,
 
             "status": row.status
 
@@ -237,7 +339,7 @@ def employee_attendance(
                 row.attendance_date
             ),
 
-            "shift": row.shift_name,
+            "shift_name": row.shift_name,
 
             "status": row.status
 

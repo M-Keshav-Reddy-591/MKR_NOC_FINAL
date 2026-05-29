@@ -17,6 +17,10 @@ router = APIRouter(
 )
 
 
+# =====================================================
+# DASHBOARD STATS
+# =====================================================
+
 @router.get("/stats")
 def get_dashboard_stats(
     db: Session = Depends(get_db)
@@ -41,6 +45,15 @@ def get_dashboard_stats(
 
     return {
 
+        "employees":
+        total_employees,
+
+        "present":
+        present_today,
+
+        "absent":
+        absent_today,
+
         "total_employees":
         total_employees,
 
@@ -51,6 +64,10 @@ def get_dashboard_stats(
         absent_today
     }
 
+
+# =====================================================
+# ABSENT EMPLOYEES
+# =====================================================
 
 @router.get("/absent-employees")
 def get_absent_employees(
@@ -74,9 +91,29 @@ def get_absent_employees(
     absent_employees = db.query(
         models.Employee
     ).filter(
-        ~models.Employee.id.in_(
+        ~models.Employee.emp_id.in_(
             attendance_ids
         )
     ).all()
 
-    return absent_employees
+    result = []
+
+    for employee in absent_employees:
+
+        result.append({
+
+            "employee_id":
+            employee.emp_id,
+
+            "employee_name":
+            employee.emp_name,
+
+            "department":
+            employee.department,
+
+            "designation":
+            employee.designation
+
+        })
+
+    return result

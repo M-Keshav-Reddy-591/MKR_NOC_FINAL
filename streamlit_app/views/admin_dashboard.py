@@ -1,44 +1,82 @@
 import streamlit as st
 import requests
+import pandas as pd
 
-API = "http://127.0.0.1:8000/api/v1"
+API = "http://127.0.0.1:8000"
+
 
 def show_admin_dashboard():
 
     st.title("Admin Dashboard")
 
-    try:
+    # =====================================================
+    # DASHBOARD STATS
+    # =====================================================
 
-        response = requests.get(
-            f"{API}/dashboard/stats"
-        )
+    stats_response = requests.get(
+        f"{API}/api/v1/dashboard/stats"
+    )
 
-        data = response.json()
+    if stats_response.status_code == 200:
 
-        col1, col2, col3, col4 = st.columns(4)
+        stats = stats_response.json()
 
-        col1.metric(
-            "Employees",
-            data.get("total_employees", 0)
-        )
+        col1, col2, col3 = st.columns(3)
 
-        col2.metric(
-            "Present",
-            data.get("present_today", 0)
-        )
+        with col1:
 
-        col3.metric(
-            "Absent",
-            data.get("absent_today", 0)
-        )
+            st.metric(
+                "Employees",
+                stats["employees"]
+            )
 
-        col4.metric(
-            "Shifts",
-            data.get("total_shifts", 0)
-        )
+        with col2:
 
-        st.success("System Running Successfully")
+            st.metric(
+                "Present",
+                stats["present"]
+            )
 
-    except Exception as e:
+        with col3:
 
-        st.error(str(e))
+            st.metric(
+                "Absent",
+                stats["absent"]
+            )
+
+    st.divider()
+
+    # # =====================================================
+    # # PASSWORD CHANGE LOGS
+    # # =====================================================
+
+    # st.subheader("Password Change Logs")
+
+    # logs_response = requests.get(
+    #     f"{API}/api/v1/auth/password-logs"
+    # )
+
+    # if logs_response.status_code == 200:
+
+    #     logs = logs_response.json()
+
+    #     if logs:
+
+    #         df = pd.DataFrame(logs)
+
+    #         st.dataframe(
+    #             df,
+    #             width="stretch"
+    #         )
+
+    #     else:
+
+    #         st.info(
+    #             "No password change logs"
+    #         )
+
+    # else:
+
+    #     st.error(
+    #         "Failed to load password logs"
+    #     )

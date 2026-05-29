@@ -3,8 +3,7 @@ import requests
 import pandas as pd
 from datetime import date
 
-
-API_URL = "http://127.0.0.1:8000"
+API = "http://127.0.0.1:8000"
 
 
 def show_employee_attendance():
@@ -16,29 +15,37 @@ def show_employee_attendance():
     today = str(date.today())
 
     # =====================================================
-    # FETCH TODAY SHIFTS
+    # GET TODAY SHIFTS
     # =====================================================
 
-    shift_response = requests.get(
-
-        f"{API_URL}/api/v1/shifts/{emp_id}/{today}"
-
+    shifts_response = requests.get(
+        f"{API}/api/v1/shifts/{emp_id}/{today}"
     )
 
     shifts = []
 
-    if shift_response.status_code == 200:
+    if shifts_response.status_code == 200:
 
-        shifts = shift_response.json()
+        shift_data = shifts_response.json()
+
+        for row in shift_data:
+
+            if isinstance(row, dict):
+
+                shifts.append(
+                    row["shift_name"]
+                )
+
+            else:
+
+                shifts.append(row)
 
     # =====================================================
-    # FETCH ATTENDANCE
+    # GET ATTENDANCE
     # =====================================================
 
     attendance_response = requests.get(
-
-        f"{API_URL}/api/v1/attendance/employee/{emp_id}"
-
+        f"{API}/api/v1/attendance/employee/{emp_id}"
     )
 
     attendance_data = []
@@ -51,88 +58,83 @@ def show_employee_attendance():
     # MARK ATTENDANCE
     # =====================================================
 
-    st.subheader("Today's Shifts")
+    st.subheader("Mark Attendance")
 
     if shifts:
 
-        for shift in shifts:
+        selected_shift = st.selectbox(
+            "Select Shift",
+            shifts
+        )
 
-            shift_name = shift["shift_name"]
+        already_marked = False
 
-            already_marked = False
+        for row in attendance_data:
 
-            for row in attendance_data:
+            if (
 
-                if (
+                row["date"] == today
 
-                    row["date"] == today
+                and
 
-                    and
+                row["shift_name"] == selected_shift
 
-                    row["shift"] == shift_name
+            ):
 
-                ):
-
-                    already_marked = True
-                    break
-
-            st.write(
-                f"Shift: {shift_name}"
-            )
-
-            if already_marked:
+                already_marked = True
 
                 st.success(
-                    "Attendance Already Marked"
+                    f"Attendance already marked for {selected_shift}"
                 )
 
-            else:
+                break
 
-                if st.button(
-                    f"Mark Present - {shift_name}"
-                ):
+        if not already_marked:
 
-                    payload = {
+            if st.button(
+                "Mark Present",
+                width="stretch"
+            ):
+
+                response = requests.post(
+
+                    f"{API}/api/v1/attendance/mark",
+
+                    json={
 
                         "employee_id": emp_id,
 
                         "attendance_date": today,
 
-                        "status": "Present",
-
-                        "shift_name": shift_name
+                        "shift_name": selected_shift
 
                     }
 
-                    response = requests.post(
+                )
 
-                        f"{API_URL}/api/v1/attendance/manual",
+                try:
 
-                        json=payload
-
-                    )
+                    data = response.json()
 
                     if response.status_code == 200:
 
                         st.success(
-                            "Attendance Marked"
+                            data["message"]
                         )
 
                         st.rerun()
 
                     else:
 
-                        try:
+                        st.error(
+                            data["detail"]
+                        )
 
-                            st.error(
-                                response.json()["detail"]
-                            )
+                except:
 
-                        except:
-
-                            st.error(
-                                "Server Error"
-                            )
+                    st.error(
+                        "Backend error"
+                    )
 
     else:
 
@@ -161,6 +163,6 @@ def show_employee_attendance():
 
     else:
 
-        st.info(
-            "No attendance records found"
+        st.warning(
+            "No attendance records"
         )

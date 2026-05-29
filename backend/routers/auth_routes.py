@@ -6,40 +6,81 @@ from fastapi import (
 
 from sqlalchemy.orm import Session
 
-import models
-from models import Employee
 from database import get_db
+
+from models import (
+    Employee,
+    PasswordLog
+)
 
 from utils.security import (
     hash_password,
     verify_password
 )
 
-from utils.jwt_handler import (
-    create_access_token
-)
-
-router = APIRouter(
-    prefix="/api/v1/auth",
-    tags=["Authentication"]
-)
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-import models
-from database import get_db
-
-from utils.security import verify_password
-
 router = APIRouter(
     prefix="/api/v1/auth",
     tags=["Authentication"]
 )
 
-# ==========================================
+
+# =========================================================
+# REGISTER
+# =========================================================
+
+@router.post("/register")
+def register_user(
+    data: dict,
+    db: Session = Depends(get_db)
+):
+
+    existing_user = db.query(
+        Employee
+    ).filter(
+        Employee.emp_id == data.get("emp_id")
+    ).first()
+
+    if existing_user:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Employee ID already exists"
+        )
+
+    hashed_password = hash_password(
+        data.get("password")
+    )
+
+    new_user = Employee(
+
+        emp_id=data.get("emp_id"),
+
+        emp_name=data.get("emp_name"),
+
+        department=data.get("department"),
+
+        designation=data.get("designation"),
+
+        role=data.get("role"),
+
+        password=hashed_password
+
+    )
+
+    db.add(new_user)
+
+    db.commit()
+
+    db.refresh(new_user)
+
+    return {
+        "message": "Employee Registered Successfully"
+    }
+
+
+# =========================================================
 # LOGIN
-# ==========================================
-
+# =========================================================
 
 @router.post("/login")
 def login(
@@ -47,17 +88,11 @@ def login(
     db: Session = Depends(get_db)
 ):
 
-    emp_id = data.get("emp_id")
-
-    password = data.get("password")
-
-    role = data.get("role")
-
-    user = db.query(Employee).filter(
-        Employee.emp_id == emp_id
+    user = db.query(
+        Employee
+    ).filter(
+        Employee.emp_id == data["emp_id"]
     ).first()
-
-    # USER NOT FOUND
 
     if not user:
 
@@ -66,10 +101,10 @@ def login(
             detail="Employee not found"
         )
 
-    # PASSWORD CHECK
+    # PASSWORD VERIFY
 
     if not verify_password(
-        password,
+        data["password"],
         user.password
     ):
 
@@ -78,26 +113,20 @@ def login(
             detail="Invalid password"
         )
 
-    # ROLE CHECK
+    # ROLE VERIFY
 
-    if role:
+    if user.role.lower() != data["role"].lower():
 
-        if user.role.lower() != role.lower():
-
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid role"
-            )
-
-    # SUCCESS RESPONSE
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid role"
+        )
 
     return {
 
         "message": "Login successful",
 
         "employee": {
-
-            "id": user.id,
 
             "emp_id": user.emp_id,
 
@@ -109,58 +138,10 @@ def login(
 
     }
 
-@router.post("/register")
-def register_user(
-    data: dict,
-    db: Session = Depends(get_db)
-):
 
-    emp_id = data.get("emp_id")
-
-    existing_user = db.query(
-        models.Employee
-    ).filter(
-        models.Employee.emp_id == emp_id
-    ).first()
-
-    # CHECK EXISTING USER
-
-    if existing_user:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Employee ID already exists"
-        )
-
-    # HASH PASSWORD
-
-    hashed_password = hash_password(
-        data.get("password")
-    )
-
-    # CREATE USER
-
-    new_user = models.Employee(
-
-        emp_id=data.get("emp_id"),
-        emp_name=data.get("emp_name"),
-        department=data.get("department"),
-        designation=data.get("designation"),
-        role=data.get("role"),
-        password=hashed_password
-    )
-
-    db.add(new_user)
-
-    db.commit()
-
-    db.refresh(new_user)
-
-    return {
-
-        "message": "Employee Registered Successfully"
-    }
-
+# =========================================================
+# EMPLOYEE CHANGE PASSWORD
+# =========================================================
 
 @router.post("/change-password")
 def change_password(
@@ -168,47 +149,125 @@ def change_password(
     db: Session = Depends(get_db)
 ):
 
-    employee_id = data.get(
-        "employee_id"
-    )
-
-    old_password = data.get(
-        "old_password"
-    )
-
-    new_password = data.get(
-        "new_password"
-    )
-
     user = db.query(
-        models.Employee
+        Employee
     ).filter(
-        models.Employee.emp_id == employee_id
+        Employee.emp_id == data["employee_id"]
     ).first()
 
     if not user:
 
         raise HTTPException(
             status_code=404,
-            detail="User not found"
+            detail="Employee not found"
         )
 
     if not verify_password(
-        old_password,
+        data["old_password"],
         user.password
     ):
 
         raise HTTPException(
-            status_code=400,
+            status_code=401,
             detail="Old password incorrect"
         )
 
     user.password = hash_password(
-        new_password
+        data["new_password"]
     )
+
+    log = PasswordLog(
+
+        employee_id=user.emp_id,
+
+        employee_name=user.emp_name,
+
+        changed_by="employee"
+
+    )
+
+    db.add(log)
 
     db.commit()
 
     return {
-        "message": "Password updated"
+        "message": "Password changed successfully"
     }
+
+
+# =========================================================
+# ADMIN RESET PASSWORD
+# =========================================================
+
+@router.post("/admin-reset-password")
+def admin_reset_password(
+    data: dict,
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(
+        Employee
+    ).filter(
+        Employee.emp_id == data["employee_id"]
+    ).first()
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
+    user.password = hash_password(
+        data["new_password"]
+    )
+
+    log = PasswordLog(
+
+        employee_id=user.emp_id,
+
+        employee_name=user.emp_name,
+
+        changed_by="admin"
+
+    )
+
+    db.add(log)
+
+    db.commit()
+
+    return {
+        "message": "Password reset successfully"
+    }
+
+
+# =========================================================
+# PASSWORD LOGS
+# =========================================================
+
+@router.get("/password-logs")
+def password_logs(
+    db: Session = Depends(get_db)
+):
+
+    logs = db.query(
+        PasswordLog
+    ).all()
+
+    result = []
+
+    for log in logs:
+
+        result.append({
+
+            "employee_id": log.employee_id,
+
+            "changed_by": log.changed_by,
+
+            "changed_at": str(
+                log.changed_at
+            )
+
+        })
+
+    return result

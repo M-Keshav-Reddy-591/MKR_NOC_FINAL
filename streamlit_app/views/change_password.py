@@ -1,14 +1,76 @@
+# import streamlit as st
+# import requests
+
+# API = "http://127.0.0.1:8000/api/v1"
+
+# def show_change_password():
+
+#     st.title("Change Password")
+
+#     employee_id = st.text_input(
+#         "Employee ID"
+#     )
+
+#     old_password = st.text_input(
+#         "Old Password",
+#         type="password"
+#     )
+
+#     new_password = st.text_input(
+#         "New Password",
+#         type="password"
+#     )
+
+#     if st.button("Change Password"):
+
+#         payload = {
+
+#             "employee_id": employee_id,
+#             "old_password": old_password,
+#             "new_password": new_password
+#         }
+
+#         try:
+
+#             response = requests.post(
+
+#                 f"{API}/auth/change-password",
+
+#                 json=payload
+#             )
+
+#             if response.status_code == 200:
+
+#                 st.success(
+#                     "Password Updated Successfully"
+#                 )
+
+#             else:
+
+#                 st.error(
+#                     response.json()["detail"]
+#                 )
+
+#         except Exception as e:
+
+#             st.error(str(e))
+
+
+
+
 import streamlit as st
 import requests
 
-API = "http://127.0.0.1:8000/api/v1"
+API = "http://127.0.0.1:8000"
+
 
 def show_change_password():
 
     st.title("Change Password")
 
     employee_id = st.text_input(
-        "Employee ID"
+        "Employee ID",
+        value=st.session_state.emp_id
     )
 
     old_password = st.text_input(
@@ -21,36 +83,47 @@ def show_change_password():
         type="password"
     )
 
-    if st.button("Change Password"):
+    if st.button(
+        "Change Password",
+        width="stretch"
+    ):
 
-        payload = {
+        response = requests.post(
 
-            "employee_id": employee_id,
-            "old_password": old_password,
-            "new_password": new_password
-        }
+            f"{API}/api/v1/auth/change-password",
+
+            json={
+
+                "employee_id": employee_id,
+
+                "old_password": old_password,
+
+                "new_password": new_password
+
+            }
+
+        )
 
         try:
 
-            response = requests.post(
+            data = response.json()
 
-                f"{API}/auth/change-password",
+        except:
 
-                json=payload
+            st.error(
+                "Backend response error"
             )
 
-            if response.status_code == 200:
+            return
 
-                st.success(
-                    "Password Updated Successfully"
-                )
+        if response.status_code == 200:
 
-            else:
+            st.success(
+                data["message"]
+            )
 
-                st.error(
-                    response.json()["detail"]
-                )
+        else:
 
-        except Exception as e:
-
-            st.error(str(e))
+            st.error(
+                data["detail"]
+            )

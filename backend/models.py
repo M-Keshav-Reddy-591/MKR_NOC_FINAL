@@ -134,3 +134,63 @@ class Leave(Base):
         String(50),
         default="Pending"
     )
+
+
+class PasswordLog(Base):
+
+    __tablename__ = "password_logs"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    employee_id = Column(
+        String(50)
+    )
+
+    employee_name = Column(
+        String(100)
+    )
+
+    changed_by = Column(
+        String(50)
+    )
+
+    changed_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+class Notification(Base):
+
+    __tablename__ = "notifications"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    employee_id = Column(
+        String(50)
+    )
+
+    title = Column(
+        String(255)
+    )
+
+    message = Column(
+        Text
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    is_read = Column(
+        Boolean,
+        default=False
+    )

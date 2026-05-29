@@ -36,12 +36,18 @@ def admin_sidebar():
             width="stretch"
         ):
             st.session_state.page = "reports"
+
         if st.button(
             "🚨 Leave Alerts",
             width="stretch"
         ):
             st.session_state.page = "leave_alerts"
-            st.rerun()
+
+        if st.button(
+            "🔐 Password Logs",
+            width="stretch"
+        ):
+            st.session_state.page = "password_logs"
 
         if st.button(
             "Change Password",
@@ -82,12 +88,13 @@ def employee_sidebar():
             width="stretch"
         ):
             st.session_state.page = "attendance"
+
         if st.button(
             "📝 Apply Leave",
             width="stretch"
         ):
             st.session_state.page = "apply_leave"
-            st.rerun()
+
         if st.button(
             "Change Password",
             width="stretch"

@@ -40,7 +40,9 @@ from views.employee_attendance import (
 from views.apply_leave import (
     show_apply_leave
 )
-
+from views.password_logs import (
+    show_password_logs
+)
 from views.leave_alerts import (
     show_leave_alerts
 )
@@ -208,6 +210,9 @@ elif st.session_state.role == "admin":
         show_reports()
     elif page == "leave_alerts":
         show_leave_alerts()
+    elif st.session_state.page == "password_logs":
+
+        show_password_logs()
 
     elif page == "change_password":
 
