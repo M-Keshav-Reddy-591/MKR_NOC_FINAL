@@ -50,6 +50,9 @@ class Employee(Base):
     role = Column(
         String(50)
     )
+    phone_number = Column(String(20))
+
+    email = Column(String(100))
 
 class Attendance(Base):
 
@@ -201,6 +204,7 @@ class Notification(Base):
 # SHIFT SWAP MODEL
 # =========================================================
 
+
 class ShiftSwap(Base):
 
     __tablename__ = "shift_swaps"
@@ -211,28 +215,12 @@ class ShiftSwap(Base):
         index=True
     )
 
-    requester_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
+    requester_id = Column(Integer)
 
-    target_employee_id = Column(
-        Integer,
-        ForeignKey("employees.id")
-    )
+    target_employee_id = Column(Integer)
 
-    current_shift_id = Column(
-        Integer,
-        ForeignKey("shift_assignments.id")
-    )
+    current_shift_id = Column(Integer)
 
-    requested_shift_id = Column(
-        Integer,
-        ForeignKey("shift_assignments.id")
-    )
+    requested_shift_id = Column(Integer)
 
-    status = Column(
-        String(50),
-        default="Pending"
-    )
-
+    status = Column(String(50))

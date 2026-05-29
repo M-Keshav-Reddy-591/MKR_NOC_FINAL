@@ -1,53 +1,58 @@
-
 import streamlit as st
 import requests
-import pandas as pd
 
-API = "http://127.0.0.1:8000"
+API = "http://127.0.0.1:8000/api/v1"
 
 
 def show_notifications():
 
-    st.title("Notifications")
+    st.title("My Notifications")
 
-    role = st.session_state.role
+    emp_id = st.session_state.emp_id
 
-    if role.lower() == "admin":
-
-        response = requests.get(
-            f"{API}/api/v1/notifications/admin/all"
-        )
-
-    else:
-
-        emp_id = st.session_state.emp_id
+    try:
 
         response = requests.get(
-            f"{API}/api/v1/notifications/{emp_id}"
+            f"{API}/notifications/{emp_id}"
         )
 
-    if response.status_code == 200:
+        if response.status_code != 200:
 
-        data = response.json()
-
-        if data:
-
-            df = pd.DataFrame(data)
-
-            st.dataframe(
-                df,
-                width="stretch"
+            st.error(
+                "Failed to load notifications"
             )
 
-        else:
+            return
+
+        notifications = response.json()
+
+        if not notifications:
 
             st.info(
-                "No notifications"
+                "No notifications available"
             )
 
-    else:
+            return
 
-        st.error(
-            "Failed to load notifications"
-        )
+        for item in notifications:
+
+            with st.container():
+
+                st.subheader(
+                    item["title"]
+                )
+
+                st.write(
+                    item["message"]
+                )
+
+                st.caption(
+                    item["created_at"]
+                )
+
+                st.divider()
+
+    except Exception as e:
+
+        st.error(str(e))
 

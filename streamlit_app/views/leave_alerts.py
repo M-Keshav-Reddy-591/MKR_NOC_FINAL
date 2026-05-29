@@ -91,7 +91,7 @@ def show_leave_alerts():
 
                                 "leave_date": leave["date"],
 
-                                "shift_name": leave["shift"],
+                                "shift_name": leave["shift_name"],
 
                                 "status": "Approved"
 
@@ -125,7 +125,7 @@ def show_leave_alerts():
 
                                 "leave_date": leave["date"],
 
-                                "shift_name": leave["shift"],
+                                "shift_name": leave["shift_name"],
 
                                 "status": "Rejected"
 

@@ -66,8 +66,8 @@ def admin_sidebar():
             "🔄 Shift Swaps",
             width="stretch"
         ):
-            st.session_state.page = "swap_alerts"
-        
+            st.session_state.page = "admin_shift_swaps"
+                
 
         if st.button(
             "Change Password",

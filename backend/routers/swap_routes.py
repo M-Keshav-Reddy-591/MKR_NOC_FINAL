@@ -9,21 +9,21 @@ from sqlalchemy.orm import Session
 from database import get_db
 
 from models import (
-    ShiftSwap,
-    ShiftAssignment,
     Employee,
+    ShiftAssignment,
+    ShiftSwap,
     Notification
 )
 
 router = APIRouter(
-    prefix="/api/v1/swaps",
-    tags=["Shift Swaps"]
+    prefix="/api/v1/swap",
+    tags=["Shift Swap"]
 )
 
 
-# =========================================================
+# =====================================================
 # REQUEST SHIFT SWAP
-# =========================================================
+# =====================================================
 
 @router.post("/request")
 def request_swap(
@@ -34,13 +34,15 @@ def request_swap(
     requester = db.query(
         Employee
     ).filter(
-        Employee.emp_id == data["requester_id"]
+        Employee.emp_id ==
+        data["requester_emp_id"]
     ).first()
 
     target = db.query(
         Employee
     ).filter(
-        Employee.emp_id == data["target_employee_id"]
+        Employee.emp_id ==
+        data["target_emp_id"]
     ).first()
 
     if not requester or not target:
@@ -54,9 +56,11 @@ def request_swap(
         ShiftAssignment
     ).filter(
 
-        ShiftAssignment.employee_id == data["requester_id"],
+        ShiftAssignment.employee_id ==
+        requester.emp_id,
 
-        ShiftAssignment.shift_date == data["shift_date"]
+        ShiftAssignment.shift_date ==
+        data["shift_date"]
 
     ).first()
 
@@ -64,9 +68,11 @@ def request_swap(
         ShiftAssignment
     ).filter(
 
-        ShiftAssignment.employee_id == data["target_employee_id"],
+        ShiftAssignment.employee_id ==
+        target.emp_id,
 
-        ShiftAssignment.shift_date == data["shift_date"]
+        ShiftAssignment.shift_date ==
+        data["shift_date"]
 
     ).first()
 
@@ -74,34 +80,52 @@ def request_swap(
 
         raise HTTPException(
             status_code=400,
-            detail="Your shift not assigned"
+            detail="Your shift not found"
         )
+
 
     if not target_shift:
 
         raise HTTPException(
             status_code=400,
-            detail="Target employee has no shift"
+            detail="Target employee shift not found"
         )
 
-    existing = db.query(
+    # =====================================================
+    # CHECK EXISTING SWAP REQUEST
+    # =====================================================
+
+    existing_swap = db.query(
         ShiftSwap
     ).filter(
 
-        ShiftSwap.current_shift_id == requester_shift.id,
+        ShiftSwap.requester_id ==
+        requester.id,
 
-        ShiftSwap.requested_shift_id == target_shift.id,
+        ShiftSwap.target_employee_id ==
+        target.id,
+
+        ShiftSwap.current_shift_id ==
+        requester_shift.id,
+
+        ShiftSwap.requested_shift_id ==
+        target_shift.id,
 
         ShiftSwap.status == "Pending"
 
     ).first()
 
-    if existing:
+    if existing_swap:
 
         raise HTTPException(
             status_code=400,
-            detail="Swap already requested"
+            detail=(
+                "Shift swap request already sent "
+                "and waiting for approval"
+            )
         )
+
+
 
     swap = ShiftSwap(
 
@@ -114,25 +138,22 @@ def request_swap(
         requested_shift_id=target_shift.id,
 
         status="Pending"
-
     )
 
     db.add(swap)
 
-    # =====================================================
-    # ADMIN NOTIFICATION
-    # =====================================================
-
     notification = Notification(
 
-        employee_id="ADMIN",
+        employee_id=target.emp_id,
 
         title="Shift Swap Request",
 
-        message=f"{requester.emp_name} requested shift swap with {target.emp_name}",
+        message=(
+            f"{requester.emp_name} "
+            f"requested a shift swap"
+        ),
 
         is_read=False
-
     )
 
     db.add(notification)
@@ -144,200 +165,8 @@ def request_swap(
     }
 
 
-# =========================================================
-# GET ALL SWAPS
-# =========================================================
-
-@router.get("/")
-def get_swaps(
-    db: Session = Depends(get_db)
-):
-
-    swaps = db.query(
-        ShiftSwap
-    ).all()
-
-    result = []
-
-    for swap in swaps:
-
-        requester = db.query(
-            Employee
-        ).filter(
-            Employee.id == swap.requester_id
-        ).first()
-
-        target = db.query(
-            Employee
-        ).filter(
-            Employee.id == swap.target_employee_id
-        ).first()
-
-        current_shift = db.query(
-            ShiftAssignment
-        ).filter(
-            ShiftAssignment.id == swap.current_shift_id
-        ).first()
-
-        requested_shift = db.query(
-            ShiftAssignment
-        ).filter(
-            ShiftAssignment.id == swap.requested_shift_id
-        ).first()
-
-        result.append({
-
-            "swap_id": swap.id,
-
-            "requester_name":
-            requester.emp_name if requester else "",
-
-            "requester_emp_id":
-            requester.emp_id if requester else "",
-
-            "target_name":
-            target.emp_name if target else "",
-
-            "target_emp_id":
-            target.emp_id if target else "",
-
-            "date":
-            str(current_shift.shift_date)
-            if current_shift else "",
-
-            "requester_shift":
-            current_shift.shift_name
-            if current_shift else "",
-
-            "target_shift":
-            requested_shift.shift_name
-            if requested_shift else "",
-
-            "status":
-            swap.status
-
-        })
-
-    return result
-
-
-# =========================================================
-# APPROVE SWAP
-# =========================================================
-
-@router.put("/approve/{swap_id}")
-def approve_swap(
-    swap_id: int,
-    db: Session = Depends(get_db)
-):
-
-    swap = db.query(
-        ShiftSwap
-    ).filter(
-        ShiftSwap.id == swap_id
-    ).first()
-
-    if not swap:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Swap not found"
-        )
-
-    current_shift = db.query(
-        ShiftAssignment
-    ).filter(
-        ShiftAssignment.id == swap.current_shift_id
-    ).first()
-
-    requested_shift = db.query(
-        ShiftAssignment
-    ).filter(
-        ShiftAssignment.id == swap.requested_shift_id
-    ).first()
-
-    if not current_shift or not requested_shift:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Shift not found"
-        )
-
-    temp_employee = current_shift.employee_id
-
-    current_shift.employee_id = requested_shift.employee_id
-
-    requested_shift.employee_id = temp_employee
-
-    swap.status = "Approved"
-
-    notification1 = Notification(
-
-        employee_id=current_shift.employee_id,
-
-        title="Shift Swap Approved",
-
-        message="Your shift swap approved",
-
-        is_read=False
-
-    )
-
-    notification2 = Notification(
-
-        employee_id=requested_shift.employee_id,
-
-        title="Shift Swap Approved",
-
-        message="Your shift was swapped",
-
-        is_read=False
-
-    )
-
-    db.add(notification1)
-    db.add(notification2)
-
-    db.commit()
-
-    return {
-        "message": "Shift swap approved"
-    }
-
-
-# =========================================================
-# REJECT SWAP
-# =========================================================
-
-@router.put("/reject/{swap_id}")
-def reject_swap(
-    swap_id: int,
-    db: Session = Depends(get_db)
-):
-
-    swap = db.query(
-        ShiftSwap
-    ).filter(
-        ShiftSwap.id == swap_id
-    ).first()
-
-    if not swap:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Swap not found"
-        )
-
-    swap.status = "Rejected"
-
-    db.commit()
-
-    return {
-        "message": "Shift swap rejected"
-    }
-
 # =====================================================
-# MY SWAP REQUESTS
+# MY REQUESTS
 # =====================================================
 
 @router.get("/my-requests/{emp_id}")
@@ -359,7 +188,8 @@ def my_requests(
     swaps = db.query(
         ShiftSwap
     ).filter(
-        ShiftSwap.requester_id == employee.id
+        ShiftSwap.requester_id ==
+        employee.id
     ).all()
 
     result = []
@@ -406,6 +236,327 @@ def my_requests(
             "target_shift": (
                 requested_shift.shift_name
                 if requested_shift else ""
+            ),
+
+            "status": swap.status
+        })
+
+    return result
+
+
+# =====================================================
+# INCOMING REQUESTS
+# =====================================================
+
+@router.get("/incoming/{emp_id}")
+def incoming_requests(
+    emp_id: str,
+    db: Session = Depends(get_db)
+):
+
+    employee = db.query(
+        Employee
+    ).filter(
+        Employee.emp_id == emp_id
+    ).first()
+
+    if not employee:
+
+        return []
+
+    swaps = db.query(
+        ShiftSwap
+    ).filter(
+        ShiftSwap.target_employee_id ==
+        employee.id
+    ).all()
+
+    result = []
+
+    for swap in swaps:
+
+        requester = db.query(
+            Employee
+        ).filter(
+            Employee.id ==
+            swap.requester_id
+        ).first()
+
+        current_shift = db.query(
+            ShiftAssignment
+        ).filter(
+            ShiftAssignment.id ==
+            swap.current_shift_id
+        ).first()
+
+        requested_shift = db.query(
+            ShiftAssignment
+        ).filter(
+            ShiftAssignment.id ==
+            swap.requested_shift_id
+        ).first()
+
+        result.append({
+
+            "swap_id": swap.id,
+
+            "requester_name": (
+                requester.emp_name
+                if requester else ""
+            ),
+
+            "date": str(
+                current_shift.shift_date
+            ) if current_shift else "",
+
+            "their_shift": (
+                current_shift.shift_name
+                if current_shift else ""
+            ),
+
+            "your_shift": (
+                requested_shift.shift_name
+                if requested_shift else ""
+            ),
+
+            "status": swap.status
+        })
+
+    return result
+
+
+# =====================================================
+# APPROVE SWAP
+# =====================================================
+
+@router.put("/approve/{swap_id}")
+def approve_swap(
+    swap_id: int,
+    db: Session = Depends(get_db)
+):
+
+    swap = db.query(
+        ShiftSwap
+    ).filter(
+        ShiftSwap.id == swap_id
+    ).first()
+
+    if not swap:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Swap request not found"
+        )
+
+    current_shift = db.query(
+        ShiftAssignment
+    ).filter(
+        ShiftAssignment.id ==
+        swap.current_shift_id
+    ).first()
+
+    requested_shift = db.query(
+        ShiftAssignment
+    ).filter(
+        ShiftAssignment.id ==
+        swap.requested_shift_id
+    ).first()
+
+    requester = db.query(
+        Employee
+    ).filter(
+        Employee.id ==
+        swap.requester_id
+    ).first()
+
+    target = db.query(
+        Employee
+    ).filter(
+        Employee.id ==
+        swap.target_employee_id
+    ).first()
+
+    # =====================================================
+    # SWAP EMPLOYEES
+    # =====================================================
+
+    temp_employee = current_shift.employee_id
+
+    current_shift.employee_id = (
+        requested_shift.employee_id
+    )
+
+    requested_shift.employee_id = temp_employee
+
+    swap.status = "Approved"
+
+    # =====================================================
+    # SEND NOTIFICATION TO REQUESTER
+    # =====================================================
+
+    notification = Notification(
+
+        employee_id=requester.emp_id,
+
+        title="Shift Swap Approved",
+
+        message=(
+            f"{target.emp_name} approved "
+            f"your shift swap request"
+        ),
+
+        is_read=False
+    )
+
+    db.add(notification)
+
+    db.commit()
+
+    return {
+        "message": "Shift swap approved"
+    }
+
+
+
+
+# =====================================================
+# REJECT SWAP
+# =====================================================
+
+
+@router.put("/reject/{swap_id}")
+def reject_swap(
+    swap_id: int,
+    db: Session = Depends(get_db)
+):
+
+    swap = db.query(
+        ShiftSwap
+    ).filter(
+        ShiftSwap.id == swap_id
+    ).first()
+
+    if not swap:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Swap request not found"
+        )
+
+    requester = db.query(
+        Employee
+    ).filter(
+        Employee.id ==
+        swap.requester_id
+    ).first()
+
+    target = db.query(
+        Employee
+    ).filter(
+        Employee.id ==
+        swap.target_employee_id
+    ).first()
+
+    swap.status = "Rejected"
+
+    # =====================================================
+    # SEND NOTIFICATION
+    # =====================================================
+
+    notification = Notification(
+
+        employee_id=requester.emp_id,
+
+        title="Shift Swap Rejected",
+
+        message=(
+            f"{target.emp_name} rejected "
+            f"your shift swap request"
+        ),
+
+        is_read=False
+    )
+
+    db.add(notification)
+
+    db.commit()
+
+    return {
+        "message": "Shift swap rejected"
+    }
+
+
+# =====================================================
+# ADMIN - ALL SWAP REQUESTS
+# =====================================================
+
+@router.get("/all")
+def all_swaps(
+    db: Session = Depends(get_db)
+):
+
+    swaps = db.query(
+        ShiftSwap
+    ).all()
+
+    result = []
+
+    for swap in swaps:
+
+        requester = db.query(
+            Employee
+        ).filter(
+            Employee.id ==
+            swap.requester_id
+        ).first()
+
+        target = db.query(
+            Employee
+        ).filter(
+            Employee.id ==
+            swap.target_employee_id
+        ).first()
+
+        requester_shift = db.query(
+            ShiftAssignment
+        ).filter(
+            ShiftAssignment.id ==
+            swap.current_shift_id
+        ).first()
+
+        target_shift = db.query(
+            ShiftAssignment
+        ).filter(
+            ShiftAssignment.id ==
+            swap.requested_shift_id
+        ).first()
+
+        result.append({
+
+            "swap_id": swap.id,
+
+            "requester": (
+                requester.emp_name
+                if requester else ""
+            ),
+
+            "target": (
+                target.emp_name
+                if target else ""
+            ),
+
+            "date": str(
+                requester_shift.shift_date
+            ) if requester_shift else "",
+
+            "requester_shift": (
+                requester_shift.shift_name
+                if requester_shift else ""
+            ),
+
+            "target_shift": (
+                target_shift.shift_name
+                if target_shift else ""
             ),
 
             "status": swap.status

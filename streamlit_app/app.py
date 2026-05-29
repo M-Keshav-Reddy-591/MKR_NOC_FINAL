@@ -59,9 +59,14 @@ from views.shift_swap import (
 from views.swap_alerts import (
     show_swap_alerts
 )
-
+from views.admin_shift_swaps import (
+    show_admin_shift_swaps
+)
 from views.leave_alerts import (
     show_leave_alerts
+)
+from views.admin_notifications import (
+    show_admin_notifications
 )
 # =========================================================
 # PAGE CONFIG
@@ -217,12 +222,14 @@ elif st.session_state.role == "admin":
     elif st.session_state.page == "edit_employees":
 
         show_edit_employees()
+    elif page == "admin_shift_swaps":
+
+        show_admin_shift_swaps()
 
 
+    # elif st.session_state.page == "swap_alerts":
 
-    elif st.session_state.page == "swap_alerts":
-
-        show_swap_alerts()
+    #     show_swap_alerts()
 
 
 
@@ -243,9 +250,10 @@ elif st.session_state.role == "admin":
 
         show_password_logs()
 
-    elif st.session_state.page == "notifications":
+    elif st.session_state.page == "admin_notifications":
 
-        show_notifications()
+
+        show_admin_notifications()
 
     elif page == "change_password":
 
@@ -268,8 +276,11 @@ elif st.session_state.role == "employee":
     elif page == "attendance":
 
         show_employee_attendance()
+
     elif page == "apply_leave":
+
         show_apply_leave()
+
     elif st.session_state.page == "shift_swap":
 
         show_shift_swap()
