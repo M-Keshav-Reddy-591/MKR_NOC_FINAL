@@ -75,7 +75,11 @@ def admin_sidebar():
         ):
             st.session_state.page = "admin_shift_swaps"
                 
-
+        if st.button(
+            "🔑 Reset Employee Password",
+            width="stretch"
+        ):
+            st.session_state.page = "admin_reset_password"
         if st.button(
             "Change Password",
             width="stretch"
