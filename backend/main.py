@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+import scheduler
 from database import engine
 from database import Base
 from utils.security import (

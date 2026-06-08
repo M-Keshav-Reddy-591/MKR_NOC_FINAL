@@ -1,6 +1,9 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from datetime import date, timedelta
+from datetime import (
+    date,
+    timedelta
+)
 
 from database import SessionLocal
 
@@ -11,61 +14,106 @@ from models import (
 
 from utils.email_service import send_email
 
+from utils.auto_absent import (
+    mark_absent_employees
+)
+
+
+# =====================================================
+# SHIFT REMINDER EMAIL
+# =====================================================
 
 def shift_email_job():
 
+    print("SHIFT EMAIL JOB RUNNING...")
+
     db = SessionLocal()
 
-    target_date = date.today() + timedelta(days=2)
+    try:
 
-    shifts = db.query(
-        ShiftAssignment
-    ).filter(
-        ShiftAssignment.shift_date == target_date
-    ).all()
+        target_date = (
+            date.today() +
+            timedelta(days=2)
+        )
 
-    for shift in shifts:
-
-        employee = db.query(
-            Employee
+        shifts = db.query(
+            ShiftAssignment
         ).filter(
-            Employee.emp_id == shift.employee_id
-        ).first()
+            ShiftAssignment.shift_date ==
+            target_date
+        ).all()
 
-        if employee and employee.email:
+        for shift in shifts:
 
-            send_email(
+            employee = db.query(
+                Employee
+            ).filter(
+                Employee.emp_id ==
+                shift.employee_id
+            ).first()
 
-                employee.email,
+            if (
+                employee
+                and employee.email
+            ):
 
-                "Upcoming Shift Reminder",
+                send_email(
 
-                f"""
+                    employee.email,
 
+                    "Upcoming Shift Reminder",
+
+                    f"""
 Hello {employee.emp_name},
 
-You have upcoming shift.
+You have an upcoming shift.
 
-Shift: {shift.shift_name}
+Shift :
+{shift.shift_name}
 
-Date: {shift.shift_date}
+Date :
+{shift.shift_date}
 
-Time:
+Time :
 {shift.start_time} to {shift.end_time}
-
 """
+                )
 
-            )
+    finally:
 
-    db.close()
+        db.close()
 
+
+# =====================================================
+# SINGLE SCHEDULER
+# =====================================================
 
 scheduler = BackgroundScheduler()
 
+# Email reminder every 24 hrs
 scheduler.add_job(
+
     shift_email_job,
-    "interval",
-    hours=24
+
+    trigger="interval",
+
+    hours=24,
+
+    id="shift_email_job"
+)
+
+# Auto absent every 5 mins
+scheduler.add_job(
+
+    mark_absent_employees,
+
+    trigger="interval",
+
+    minutes=5,
+
+    id="auto_absent_job"
 )
 
 scheduler.start()
+
+print("Scheduler Started")
