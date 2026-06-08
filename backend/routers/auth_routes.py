@@ -242,7 +242,7 @@ def admin_reset_password(
     user = db.query(
         Employee
     ).filter(
-        Employee.emp_id == data["employee_id"]
+        Employee.emp_id == data["emp_id"]
     ).first()
 
     if not user:

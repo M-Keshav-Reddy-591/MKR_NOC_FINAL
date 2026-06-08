@@ -13,14 +13,14 @@ router = APIRouter(
     tags=["Employees"]
 )
 
-@router.get("")
-def get_employees(
-    db: Session = Depends(database.get_db)
-):
+# @router.get("")
+# def get_employees(
+#     db: Session = Depends(database.get_db)
+# ):
 
-    employees = db.query(models.Employee).all()
+#     employees = db.query(models.Employee).all()
 
-    return employees
+#     return employees
 
 
 

@@ -17,7 +17,9 @@ from views.edit_employees import (
 from views.admin_dashboard import (
     show_admin_dashboard
 )
-
+from views.admin_reset_password import (
+    show_admin_reset_password
+)
 from views.employees import (
     show_employees
 )
@@ -260,7 +262,9 @@ elif st.session_state.role == "admin":
 
 
         show_admin_notifications()
+    elif page == "admin_reset_password":
 
+        show_admin_reset_password()
     elif page == "change_password":
 
         show_change_password()
