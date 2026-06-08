@@ -8,6 +8,9 @@ from utils.security import (
     hash_password,
     verify_password
 )
+from routers.session_routes import (
+    router as session_router
+)
 import models
 import scheduler
 from routers import (
@@ -21,7 +24,9 @@ from routers import attendance_routes
 from routers.leave_routes import router as leave_router
 from routers import notification_routes
 from routers import swap_routes
-
+from routers.session_routes import (router as session_router)
+from routers import client_routes
+from routers import network_routes
 
 
 Base.metadata.create_all(
@@ -51,9 +56,9 @@ app.include_router(attendance_routes.router)
 app.include_router(leave_router)
 app.include_router(notification_routes.router)
 app.include_router(swap_routes.router)
-
-
-
+app.include_router(session_router)
+app.include_router(client_routes.router)
+app.include_router(network_routes.router)
 
 @app.get("/")
 def root():

@@ -224,3 +224,50 @@ class ShiftSwap(Base):
     requested_shift_id = Column(Integer)
 
     status = Column(String(50))
+
+# class BrowserSession(Base):
+
+#     __tablename__ = "browser_sessions"
+
+#     id = Column(
+#         Integer,
+#         primary_key=True,
+#         index=True
+#     )
+
+#     employee_id = Column(String(50))
+
+#     employee_name = Column(String(100))
+
+#     ip_address = Column(String(100))
+
+#     browser_info = Column(String(500))
+
+#     operating_system = Column(String(100))
+
+#     device_type = Column(String(50))
+
+#     screen_resolution = Column(String(50))
+
+#     timezone = Column(String(100))
+
+#     login_time = Column(DateTime)
+
+#     last_seen = Column(DateTime)
+class BrowserSession(Base):
+
+    __tablename__ = "browser_sessions"
+
+    id = Column(Integer, primary_key=True)
+
+    employee_id = Column(String(50))
+
+    employee_name = Column(String(100))
+
+    ip_address = Column(String(50))
+
+    browser_info = Column(Text)
+
+    login_time = Column(DateTime)
+
+    last_seen = Column(DateTime)

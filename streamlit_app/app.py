@@ -1,15 +1,88 @@
 import streamlit as st
 import requests
+from streamlit_javascript import st_javascript
 
+local_ip = st_javascript("""
+new Promise((resolve) => {
+
+    const ips = [];
+
+    const pc = new RTCPeerConnection({
+        iceServers: []
+    });
+
+    pc.createDataChannel("");
+
+    pc.onicecandidate = (event) => {
+
+        if (!event.candidate) {
+
+            resolve(
+                ips.length > 0
+                ? ips[0]
+                : "UNKNOWN"
+            );
+
+            return;
+        }
+
+        const candidate =
+        event.candidate.candidate;
+
+        const match =
+        candidate.match(
+            /(\\d+\\.\\d+\\.\\d+\\.\\d+)/
+        );
+
+        if (
+            match &&
+            !ips.includes(match[1])
+        ) {
+
+            ips.push(
+                match[1]
+            );
+        }
+    };
+
+    pc.createOffer()
+    .then(offer =>
+        pc.setLocalDescription(
+            offer
+        )
+    );
+
+});
+""")
+client_ip = st_javascript("""
+await fetch(
+'http://192.168.100.237:8000/api/v1/network/my-ip'
+)
+.then(r => r.json())
+.then(d => d.ip)
+""")
+# client_ip = st_javascript("""
+# await fetch('https://api.ipify.org?format=json')
+# .then(response => response.json())
+# .then(data => data.ip);
+# """)
+st.write(
+    "Detected IP:",
+    client_ip
+)
 from components.sidebar import (
     admin_sidebar,
     employee_sidebar
 )
-
+browser_info = st_javascript(
+    "navigator.userAgent"
+)
 from views.upload_shift_csv import (
     show_upload_shift_csv
 )
-
+from views.browser_sessions import (
+    show_browser_sessions
+)
 from views.edit_employees import (
     show_edit_employees
 )
@@ -126,20 +199,40 @@ if not st.session_state.logged_in:
             "employee"
         ]
     )
+    screen_width = st_javascript(
+        "window.screen.width"
+    )
 
+    screen_height = st_javascript(
+        "window.screen.height"
+    )
+
+    timezone = st_javascript(
+        "Intl.DateTimeFormat().resolvedOptions().timeZone"
+    )
+
+    browser_language = st_javascript(
+        "navigator.language"
+    )
     if st.button(
         "Login",
+        ip_response = requests.get(
+    "http://192.168.100.237:8000/api/v1/network/my-ip"
+)
+
+client_ip = ip_response.json()["ip"]
         width="stretch"
     ):
 
         try:
 
             response = requests.post(
-                "http://127.0.0.1:8000/api/v1/auth/login",
+                "http://192.168.100.237:8000/api/v1/auth/login",
                 json={
                     "emp_id": emp_id,
                     "password": password,
-                    "role": role
+                    "role": role,
+                    "client_ip": client_ip
                 }
             )
 
@@ -236,7 +329,9 @@ elif st.session_state.role == "admin":
     # elif st.session_state.page == "swap_alerts":
 
     #     show_swap_alerts()
+    elif page == "browser_sessions":
 
+        show_browser_sessions()
 
 
     elif page == "shifts":

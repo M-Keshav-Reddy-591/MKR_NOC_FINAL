@@ -76,6 +76,11 @@ def admin_sidebar():
             st.session_state.page = "admin_shift_swaps"
                 
         if st.button(
+            "🌐 Browser Sessions",
+            width="stretch"
+        ):
+            st.session_state.page = "browser_sessions"
+        if st.button(
             "🔑 Reset Employee Password",
             width="stretch"
         ):
