@@ -19,10 +19,6 @@ from utils.auto_absent import (
 )
 
 
-# =====================================================
-# SHIFT REMINDER EMAIL
-# =====================================================
-
 def shift_email_job():
 
     print("SHIFT EMAIL JOB RUNNING...")
@@ -52,10 +48,7 @@ def shift_email_job():
                 shift.employee_id
             ).first()
 
-            if (
-                employee
-                and employee.email
-            ):
+            if employee and employee.email:
 
                 send_email(
 
@@ -84,23 +77,7 @@ Time :
         db.close()
 
 
-# =====================================================
-# SINGLE SCHEDULER
-# =====================================================
-
 scheduler = BackgroundScheduler()
-
-# Email reminder every 24 hrs
-scheduler.add_job(
-
-    shift_email_job,
-
-    trigger="interval",
-
-    hours=24,
-
-    id="shift_email_job"
-)
 
 # Auto absent every 5 mins
 scheduler.add_job(
@@ -109,10 +86,14 @@ scheduler.add_job(
 
     trigger="interval",
 
-    minutes=5,
+    minutes=5,#hours=7,
 
     id="auto_absent_job"
 )
+
+# Run immediately at startup
+# print("Running auto absent startup check...")
+# mark_absent_employees()
 
 scheduler.start()
 
