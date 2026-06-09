@@ -13,14 +13,14 @@ router = APIRouter(
     tags=["Employees"]
 )
 
-@router.get("")
-def get_employees(
-    db: Session = Depends(database.get_db)
-):
+# @router.get("")
+# def get_employees(
+#     db: Session = Depends(database.get_db)
+# ):
 
-    employees = db.query(models.Employee).all()
+#     employees = db.query(models.Employee).all()
 
-    return employees
+#     return employees
 
 
 
@@ -40,24 +40,41 @@ def get_employees(
     result = []
 
     for emp in employees:
-
         result.append({
 
-            "Employee ID": emp.emp_id,
+            "emp_id": emp.emp_id,
 
-            "Name": emp.emp_name,
+            "emp_name": emp.emp_name,
 
-            "Department": emp.department,
+            "department": emp.department,
 
-            "Designation": emp.designation,
+            "designation": emp.designation,
 
-            "Phone": emp.phone_number,
+            "phone_number": emp.phone_number,
 
-            "Email": emp.email,
+            "email": emp.email,
 
-            "Role": emp.role
+            "role": emp.role
 
         })
+
+        # result.append({
+
+        #     "Employee ID": emp.emp_id,
+
+        #     "Name": emp.emp_name,
+
+        #     "Department": emp.department,
+
+        #     "Designation": emp.designation,
+
+        #     "Phone": emp.phone_number,
+
+        #     "Email": emp.email,
+
+        #     "Role": emp.role
+
+        # })
 
     return result
 

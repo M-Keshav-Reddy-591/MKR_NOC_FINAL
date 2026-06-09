@@ -321,3 +321,72 @@ def employee_attendance(
         })
 
     return result
+@router.get("/employee-summary/{emp_id}")
+def employee_summary(
+    emp_id: str,
+    db: Session = Depends(get_db)
+):
+
+    employee = db.query(
+        Employee
+    ).filter(
+        Employee.emp_id == emp_id
+    ).first()
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
+    shifts = db.query(
+        ShiftAssignment
+    ).filter(
+        ShiftAssignment.employee_id == emp_id
+    ).all()
+
+    attendance = db.query(
+        Attendance
+    ).filter(
+        Attendance.employee_id == emp_id
+    ).all()
+
+    return {
+
+        "employee": {
+
+            "emp_id": employee.emp_id,
+            "emp_name": employee.emp_name,
+            "department": employee.department,
+            "designation": employee.designation,
+            "role": employee.role
+
+        },
+
+        "shifts": [
+
+            {
+
+                "date": str(s.shift_date),
+                "shift_name": s.shift_name,
+                "start_time": str(s.start_time),
+                "end_time": str(s.end_time)
+
+            }
+
+            for s in shifts
+        ],
+
+        "attendance": [
+
+            {
+
+                "date": str(a.attendance_date),
+                "shift_name": a.shift_name,
+                "status": a.status
+
+            }
+
+            for a in attendance
+        ]
+    }

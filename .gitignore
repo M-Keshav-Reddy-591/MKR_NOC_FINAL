@@ -1,3 +1,31 @@
+# Ignore a specific file
+secrets.json
+
+# Ignore a specific folder and all its contents (always use a trailing slash)
+node_modules/
+bin/
+obj/
+
+# Ignore all files with a specific extension (using wildcards)
+*.log
+*.env
+
+# Make an exception to a rule using an exclamation mark
+!important.log
+
+
+# Ignore standard Python virtual environments
 venv/
 .venv/
 env/
+
+# Ignore Python cache files
+**/__pycache__/
+*.pyc
+
+# Ignore VS Code configuration
+.vscode/
+
+# Ignore your local CSV folder
+CSV/
+

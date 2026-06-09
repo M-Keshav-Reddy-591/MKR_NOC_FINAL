@@ -1,19 +1,18 @@
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException
+    HTTPException,
+    Request
 )
-
+from datetime import datetime
 from sqlalchemy.orm import Session
-
 from database import get_db
-
 from models import (
     Employee,
     PasswordLog,
-    Notification
+    Notification,
+    BrowserSession
 )
-
 from utils.security import (
     hash_password,
     verify_password
@@ -84,14 +83,55 @@ def register_user(
     }
 
 
-# =========================================================
-# LOGIN
-# =========================================================
+# # =========================================================
+# # LOGIN
+# # =========================================================
 
+# @router.post("/login")
+# def login(
+#     request: Request,
+#     data: dict,
+#     db: Session = Depends(get_db)
+# ):
+
+#     user = db.query(
+#         Employee
+#     ).filter(
+#         Employee.emp_id == data["emp_id"]
+#     ).first()
+
+#     if not user:
+
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Employee not found"
+#         )
+
+#     if not verify_password(
+#         data["password"],
+#         user.password
+#     ):
+
+#         raise HTTPException(
+#             status_code=401,
+#             detail="Invalid password"
+#         )
+
+#     if user.role.lower() != data["role"].lower():
+
+#         raise HTTPException(
+#             status_code=401,
+#             detail="Invalid role"
+#         )
 @router.post("/login")
 def login(
+
+    request: Request,
+
     data: dict,
+
     db: Session = Depends(get_db)
+
 ):
 
     user = db.query(
@@ -124,6 +164,118 @@ def login(
             detail="Invalid role"
         )
 
+    user_agent = request.headers.get(
+        "user-agent",
+        "Unknown"
+    )
+
+    # Browser
+
+    browser = "Unknown"
+
+    if "Chrome" in user_agent:
+
+        browser = "Chrome"
+
+    elif "Firefox" in user_agent:
+
+        browser = "Firefox"
+
+    elif "Edge" in user_agent:
+
+        browser = "Edge"
+
+    # OS
+
+    operating_system = "Unknown"
+
+    if "Windows" in user_agent:
+
+        operating_system = "Windows"
+
+    elif "Linux" in user_agent:
+
+        operating_system = "Linux"
+
+    elif "Android" in user_agent:
+
+        operating_system = "Android"
+
+    # Device
+
+    if "Mobile" in user_agent:
+
+        device_type = "Mobile"
+
+    else:
+
+        device_type = "Desktop"
+    # ip_address = data.get(
+    #     "client_ip",
+    #     request.client.host
+    # )
+    ip_address = request.client.host
+
+    print(
+        f"CLIENT IP : {ip_address}"
+    )
+
+    session = BrowserSession(
+
+        employee_id=user.emp_id,
+
+        employee_name=user.emp_name,
+
+        ip_address=ip_address,
+
+        browser_info=data.get(
+            "browser_info",
+            "Unknown"
+        ),
+
+        login_time=datetime.now(),
+
+        last_seen=datetime.now()
+
+    )
+
+    db.add(session)
+
+    db.commit()
+    # session = BrowserSession(
+
+    #     employee_id=user.emp_id,
+
+    #     employee_name=user.emp_name,
+
+    #     ip_address=ip_address,
+
+    #     browser_info=browser,
+
+    #     operating_system=operating_system,
+
+    #     device_type=device_type,
+
+    #     screen_resolution=data.get(
+    #         "screen_resolution",
+    #         ""
+    #     ),
+
+    #     timezone=data.get(
+    #         "timezone",
+    #         ""
+    #     ),
+
+    #     login_time=datetime.now(),
+
+    #     last_seen=datetime.now()
+
+    # )
+
+    db.add(session)
+
+    db.commit()
+
     return {
 
         "message": "Login successful",
@@ -139,6 +291,57 @@ def login(
         }
 
     }
+
+    # # ============================================
+    # # BROWSER SESSION
+    # # ============================================
+
+    # ip_address = data.get(
+    #         "client_ip",
+    #         request.client.host
+    #     )
+
+    # browser_info = data.get(
+    #     "browser_info",
+    #     "Unknown"
+    # )
+
+    # session = BrowserSession(
+
+    #     employee_id=user.emp_id,
+
+    #     employee_name=user.emp_name,
+
+    #     ip_address=ip_address,
+
+    #     browser_info=browser_info,
+
+    #     login_time=datetime.now(),
+
+    #     last_seen=datetime.now()
+
+    # )
+
+    # db.add(session)
+
+    # db.commit()
+    
+    # return {
+
+    #     "message": "Login successful",
+
+    #     "employee": {
+
+    #         "emp_id": user.emp_id,
+
+    #         "name": user.emp_name,
+
+    #         "role": user.role,
+
+
+    #     }
+
+    # }
 
 
 # =========================================================
@@ -321,4 +524,6 @@ def password_logs(
         })
 
     return result
+
+
 
