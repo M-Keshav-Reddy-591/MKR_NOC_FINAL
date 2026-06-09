@@ -210,6 +210,15 @@ def login(
     else:
 
         device_type = "Desktop"
+    # ip_address = data.get(
+    #     "client_ip",
+    #     request.client.host
+    # )
+    ip_address = request.client.host
+
+    print(
+        f"CLIENT IP : {ip_address}"
+    )
 
     session = BrowserSession(
 
@@ -219,20 +228,9 @@ def login(
 
         ip_address=ip_address,
 
-        browser_info=browser,
-
-        operating_system=operating_system,
-
-        device_type=device_type,
-
-        screen_resolution=data.get(
-            "screen_resolution",
-            ""
-        ),
-
-        timezone=data.get(
-            "timezone",
-            ""
+        browser_info=data.get(
+            "browser_info",
+            "Unknown"
         ),
 
         login_time=datetime.now(),
@@ -240,6 +238,39 @@ def login(
         last_seen=datetime.now()
 
     )
+
+    db.add(session)
+
+    db.commit()
+    # session = BrowserSession(
+
+    #     employee_id=user.emp_id,
+
+    #     employee_name=user.emp_name,
+
+    #     ip_address=ip_address,
+
+    #     browser_info=browser,
+
+    #     operating_system=operating_system,
+
+    #     device_type=device_type,
+
+    #     screen_resolution=data.get(
+    #         "screen_resolution",
+    #         ""
+    #     ),
+
+    #     timezone=data.get(
+    #         "timezone",
+    #         ""
+    #     ),
+
+    #     login_time=datetime.now(),
+
+    #     last_seen=datetime.now()
+
+    # )
 
     db.add(session)
 
