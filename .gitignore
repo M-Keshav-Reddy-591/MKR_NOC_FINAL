@@ -1,31 +1,68 @@
-# Ignore a specific file
-secrets.json
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Ignore a specific folder and all its contents (always use a trailing slash)
-node_modules/
-bin/
-obj/
-
-# Ignore all files with a specific extension (using wildcards)
-*.log
-*.env
-
-# Make an exception to a rule using an exclamation mark
-!important.log
-
-
-# Ignore standard Python virtual environments
+# Virtual Environments
 venv/
 .venv/
 env/
+ENV/
 
-# Ignore Python cache files
-**/__pycache__/
-*.pyc
+# Streamlit
+.streamlit/secrets.toml
 
-# Ignore VS Code configuration
+# Environment Variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+
+# MySQL Dumps
+*.sql
+
+# VS Code
 .vscode/
 
-# Ignore your local CSV folder
-CSV/
+# PyCharm
+.idea/
 
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Build Files
+build/
+dist/
+*.egg-info/
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Uploaded files
+uploads/
+temp/
+tmp/
+
+# Node modules (if frontend uses npm)
+node_modules/
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Streamlit cache
+.streamlit/cache/
+
+# XAMPP temporary files
+xampp/
