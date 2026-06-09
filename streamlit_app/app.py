@@ -1,33 +1,26 @@
 import streamlit as st
 import requests
 from streamlit_javascript import st_javascript
-
-
-
-
-browser_info = st_javascript(
-    "navigator.userAgent",
-    key="browser_info"
-)
-screen_width = st_javascript(
-    "window.screen.width",
-    key="screen_width"
-)
-
-screen_height = st_javascript(
-    "window.screen.height",
-    key="screen_height"
-)
-
-timezone = st_javascript(
-    "Intl.DateTimeFormat().resolvedOptions().timeZone",
-    key="timezone"
-)
-
-browser_language = st_javascript(
-    "navigator.language",
-    key="browser_language"
-)
+# browser_info = st_javascript(
+#     "navigator.userAgent",
+#     key="browser_info"
+# )
+# screen_width = st_javascript(
+#     "window.screen.width",
+#     key="screen_width"
+# )
+# screen_height = st_javascript(
+#     "window.screen.height",
+#     key="screen_height"
+# )
+# timezone = st_javascript(
+#     "Intl.DateTimeFormat().resolvedOptions().timeZone",
+#     key="timezone"
+# )
+# browser_language = st_javascript(
+#     "navigator.language",
+#     key="browser_language"
+# )
 from components.sidebar import (
     admin_sidebar,
     employee_sidebar
@@ -155,138 +148,41 @@ if not st.session_state.logged_in:
             "employee"
         ]
     )
-    screen_width = st_javascript(
-        "window.screen.width"
-    )
+    # screen_width = st_javascript(
+    #     "window.screen.width"
+    # )
 
-    screen_height = st_javascript(
-        "window.screen.height"
-    )
+    # screen_height = st_javascript(
+    #     "window.screen.height"
+    # )
 
-    timezone = st_javascript(
-        "Intl.DateTimeFormat().resolvedOptions().timeZone"
-    )
+    # timezone = st_javascript(
+    #     "Intl.DateTimeFormat().resolvedOptions().timeZone"
+    # )
 
-    browser_language = st_javascript(
-        "navigator.language"
-    )
-#     if st.button(
-#         "Login",
-# #         ip_response = requests.get(
-# #     "http://192.168.100.237:8000/api/v1/network/my-ip"
-# # )
+    # browser_language = st_javascript(
+    #     "navigator.language"
+    # )
 
-# # client_ip = ip_response.json()["ip"]
-#         width="stretch"
-#     ):
-
-#         try:
-
-#             # response = requests.post(
-#             #     "http://192.168.100.237:8000/api/v1/auth/login",
-#             #     json={
-#             #         "emp_id": emp_id,
-#             #         "password": password,
-#             #         "role": role,
-#             #         "client_ip": client_ip
-#             #     }
-#             # )
-#             response = requests.post(
-#                 "http://192.168.100.237:8000/api/v1/auth/login",
-#                 json={
-#                     "emp_id": emp_id,
-#                     "password": password,
-#                     "role": role,
-#                     "client_ip": client_ip,
-#                     "browser_info": browser_info,
-#                     "screen_resolution":
-#                         f"{screen_width}x{screen_height}",
-#                     "timezone": timezone,
-#                     "language": browser_language
-#                 }
-#             )
-
-#             # SUCCESS LOGIN
-
-#             if response.status_code == 200:
-
-#                 data = response.json()
-
-#                 # BACKEND RESPONSE
-#                 # data["employee"]
-
-#                 employee = data.get("employee")
-
-#                 if not employee:
-
-#                     st.error(
-#                         "Employee data missing from backend response"
-#                     )
-
-#                 else:
-
-#                     st.session_state.logged_in = True
-
-#                     st.session_state.role = employee.get(
-#                         "role",
-#                         ""
-#                     )
-
-#                     st.session_state.emp_id = employee.get(
-#                         "emp_id",
-#                         ""
-#                     )
-
-#                     st.session_state.emp_name = employee.get(
-#                         "name",
-#                         ""
-#                     )
-
-#                     # DEFAULT PAGE
-
-#                     st.session_state.page = "dashboard"
-
-#                     st.rerun()
-
-#             # FAILED LOGIN
-
-#             else:
-
-#                 try:
-
-#                     st.error(
-#                         response.json()["detail"]
-#                     )
-
-#                 except:
-
-#                     st.error(
-#                         response.text
-#                     )
-
-#         except Exception as e:
-
-#             st.error(
-#                 f"Server Error : {str(e)}"
-#             )
     if st.button(
         "Login",
-        use_container_width=True
+        width="stretch"
     ):
 
         try:
 
             response = requests.post(
-                "http://192.168.100.237:8000/api/v1/auth/login",
+                # "http://192.168.100.237:8000/api/v1/auth/login",
+                "http://172.16.100.150:8000/api/v1/auth/login",
                 json={
                     "emp_id": emp_id,
                     "password": password,
                     "role": role,
-                    "browser_info": browser_info,
-                    "screen_resolution":
-                        f"{screen_width}x{screen_height}",
-                    "timezone": timezone,
-                    "language": browser_language
+                    # "browser_info": browser_info,
+                    # "screen_resolution":
+                    #     f"{screen_width}x{screen_height}",
+                    # "timezone": timezone,
+                    # "language": browser_language
                 }
             )
 

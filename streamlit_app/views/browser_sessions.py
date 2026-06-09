@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 import pandas as pd
 
-API_URL = "http://192.168.100.237:8000"
+# API_URL = "http://192.168.100.237:8000"
+API_URL = "http://172.16.100.150:8000"
 
 
 def show_browser_sessions():
@@ -25,7 +26,7 @@ def show_browser_sessions():
 
                 st.dataframe(
                     df,
-                    use_container_width=True
+                    width="stretch"
                 )
 
             else:
