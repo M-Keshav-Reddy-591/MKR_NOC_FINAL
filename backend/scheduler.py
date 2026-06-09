@@ -86,8 +86,7 @@ scheduler.add_job(
 
     trigger="interval",
 
-    #minutes=5,
-    minutes=55,
+    minutes=5,
 
     id="auto_absent_job"
 )

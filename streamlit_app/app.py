@@ -2,6 +2,13 @@ import streamlit as st
 import requests
 from streamlit_javascript import st_javascript
 
+client_ip = st_javascript("""
+await fetch(
+'http://192.168.100.237:8000/api/v1/network/my-ip'
+)
+.then(r => r.json())
+.then(d => d.ip)
+""")
 local_ip = st_javascript("""
 new Promise((resolve) => {
 
@@ -54,13 +61,7 @@ new Promise((resolve) => {
 
 });
 """)
-client_ip = st_javascript("""
-await fetch(
-'http://192.168.100.237:8000/api/v1/network/my-ip'
-)
-.then(r => r.json())
-.then(d => d.ip)
-""")
+
 # client_ip = st_javascript("""
 # await fetch('https://api.ipify.org?format=json')
 # .then(response => response.json())
@@ -216,11 +217,11 @@ if not st.session_state.logged_in:
     )
     if st.button(
         "Login",
-        ip_response = requests.get(
-    "http://192.168.100.237:8000/api/v1/network/my-ip"
-)
+#         ip_response = requests.get(
+#     "http://192.168.100.237:8000/api/v1/network/my-ip"
+# )
 
-client_ip = ip_response.json()["ip"]
+# client_ip = ip_response.json()["ip"]
         width="stretch"
     ):
 
